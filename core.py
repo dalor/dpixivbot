@@ -2,6 +2,7 @@ from flask import Flask, request
 from dbot import Bot, inputmedia as inmed, reply_markup as repl, inlinequeryresult as iqr
 import json
 from dpixiv import DPixivIllusts
+import re
 
 app = Flask(__name__)
 
@@ -11,7 +12,9 @@ pix = DPixivIllusts('mupagosad@idx4.com', 'mupagosad')
 
 PACK_OF_SIMILAR_POSTS = 10
 
-pixiv_tags = lambda pic: ['#{}{}'.format(t['tag'], '({})'.format(t['translation']['en']) if 'translation' in t else '') for t in pic['tags']['tags']]
+change_to_ = re.compile('[\.\-\/]')
+
+pixiv_tags = lambda pic: ['#{}{}'.format(re.sub('_', t['tag']), '({})'.format(t['translation']['en']) if 'translation' in t else '') for t in pic['tags']['tags']]
 
 def usual_reply(pic_id, sim_page=''):
     return [[repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(pic_id)),
