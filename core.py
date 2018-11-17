@@ -107,17 +107,12 @@ def call_sim(a):
         for sim_id in sim_ids:
             send_picture(sim_id, a.data['message']['chat']['id'], a.data['message']['message_id'])
 
-@b.callback_query('pic ([0-9]+) ([0-9]+)')
-@check_callback_error
-def ppic(a):
-    send_picture(a.args[1], a.data['message']['chat']['id'])
-
 @b.callback_query('file ([0-9]+)')
 @check_callback_error
 def ffile(a):
     a.answer(text='Sending...').send()
     pic = pix.info(a.args[1])['preload']['illust'][a.args[1]]
-    b.document(pic['urls']['original'], chat_id=a.data['message']['chat']['id']).send()
+    b.document(pic['urls']['original'], chat_id=a.data['message']['chat']['id'], reply_to_message_id=a.data['message']['message_id']).send()
 
 @app.route('/this_is_hook', methods=['POST']) #Telegram should be connected to this hook
 def webhook():
