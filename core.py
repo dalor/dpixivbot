@@ -14,7 +14,7 @@ PACK_OF_SIMILAR_POSTS = 10
 
 change_to_ = re.compile('[\.\-\/]')
 
-pixiv_tags = lambda pic: ['#{}{}'.format(re.sub('_', t['tag']), '({})'.format(t['translation']['en']) if 'translation' in t else '') for t in pic['tags']['tags']]
+pixiv_tags = lambda pic: ['#{}{}'.format(change_to_.sub('_', t['tag']), '({})'.format(t['translation']['en']) if 'translation' in t else '') for t in pic['tags']['tags']]
 
 def usual_reply(pic_id, sim_page=''):
     return [[repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(pic_id)),
