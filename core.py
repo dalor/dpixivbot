@@ -26,10 +26,10 @@ def send_picture(pic_id, chat_id, reply_to_message_id=None):
 
 def check_inline_error(func):
     def new_func(a):
-        try:
+        #try:
             func(a)
-        except:
-            a.answer([iqr(type='article', id=1, title='Error!!!', input_message_content={'message_text': 'Error!!!'}, reply_markup = {'inline_keyboard': [[repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + a.args[1])]]})]).send()
+        #except:
+            #a.answer([iqr(type='article', id=1, title='Error!!!', input_message_content={'message_text': 'Error!!!'}, reply_markup = {'inline_keyboard': [[repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + a.args[1])]]})]).send()
     return new_func
 
 def check_message_error(func):
