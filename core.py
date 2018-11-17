@@ -22,7 +22,12 @@ def usual_reply(pic_id, sim_page=''):
 def send_picture(pic_id, chat_id, reply_to_message_id=None):
     pic = pix.info(pic_id)['preload']['illust'][pic_id] 
     tags = pixiv_tags(pic)
-    b.msg('<a href="{}">{}</a>\n<b>Tags:</b> {}'.format(pic['urls']['original'], pic['title'], ', '.join(tags)), chat_id=chat_id, parse_mode='HTML', reply_to_message_id=reply_to_message_id, reply_markup=repl.inlinekeyboardmarkup(usual_reply(pic_id))).send()
+    text = '<a href="{}">{}</a>\n<b>Tags:</b> {}'.format(pic['urls']['original'], pic['title'], ', '.join(tags))
+    reply_markup = repl.inlinekeyboardmarkup(usual_reply(pic_id))
+    if reply_to_message_id:
+        b.msg(text, chat_id=chat_id, parse_mode='HTML', reply_to_message_id=reply_to_message_id, reply_markup=reply_markup).send()
+    else:
+        b.msg(text, chat_id=chat_id, parse_mode='HTML', reply_markup=reply_markup).send()
 
 def check_inline_error(func):
     def new_func(a):
@@ -34,10 +39,10 @@ def check_inline_error(func):
 
 def check_message_error(func):
     def new_func(a):
-        #try:
+        try:
             func(a)
-        #except:
-            #a.msg('Error!!!', reply_markup=repl.inlinekeyboardmarkup([[repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + a.args[1])]])).send()
+        except:
+            a.msg('Error!!!', reply_markup=repl.inlinekeyboardmarkup([[repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + a.args[1])]])).send()
     return new_func
     
 def check_callback_error(func):
@@ -72,7 +77,7 @@ def pic_(a):
 def pic__(a):
     pic_(a)
 
-@b.message('/start ?([0-9]+)')
+@b.message('/start ?([0-9]*)')
 def start(a):
     if a.args[1]:
         pic_(a)
