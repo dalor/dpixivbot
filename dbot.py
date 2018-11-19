@@ -139,10 +139,10 @@ class CallbackQuery:
         
 class Bot:
     def __init__(self, token):
-        self.commands = {'message': {'checker': self.message_checker, 'commands': []},
-                         'edited_message': {'checker': self.edited_message_checker, 'commands': []},   
-                         'channel_post': {'checker': self.channel_post_checker, 'commands': []},
-                         'edited_channel_post': {'checker': self.edited_channel_post_checker, 'commands': []},
+        self.commands = {'message': {'checker': self.message_checker, 'commands': [], 'free': None},
+                         'edited_message': {'checker': self.edited_message_checker, 'commands': [], 'free': None},   
+                         'channel_post': {'checker': self.channel_post_checker, 'commands': [], 'free': None},
+                         'edited_channel_post': {'checker': self.edited_channel_post_checker, 'commands': [], 'free': None},
                          'inline_query': {'checker': self.inline_query_checker, 'commands': []},
                          'chosen_inline_result': {'checker': self.chosen_inline_result_checker, 'commands': []},
                          'callback_query': {'checker': self.callback_query_checker, 'commands': []}}
@@ -217,10 +217,16 @@ class Bot:
                 if res: 
                     com['run'](Message(mess, self, type, res))
                     break
+        free = self.commands[type]['free']
+        if free:
+            free(Message(mess, self, type, None))
     
     def message(self, command):
         def reg(old):
-            self.commands['message']['commands'].append({'run': old, 'match': re.compile(command)})
+            if command is True:
+                self.commands['message']['free'] = old
+            else:
+                self.commands['message']['commands'].append({'run': old, 'match': re.compile(command)})
             return old
         return reg
         
@@ -229,7 +235,10 @@ class Bot:
     
     def edited_message(self, command):
         def reg(old):
-            self.commands['edited_message']['commands'].append({'run': old, 'match': re.compile(command)})
+            if command is True:
+                self.commands['edited_message']['free'] = old
+            else:
+                self.commands['edited_message']['commands'].append({'run': old, 'match': re.compile(command)})
             return old
         return reg
     
@@ -238,7 +247,10 @@ class Bot:
     
     def channel_post(self, command):
         def reg(old):
-            self.commands['channel_post']['commands'].append({'run': old, 'match': re.compile(command)})
+            if command is True:
+                self.commands['channel_post']['free'] = old
+            else:
+                self.commands['channel_post']['commands'].append({'run': old, 'match': re.compile(command)})
             return old
         return reg
     
@@ -247,7 +259,10 @@ class Bot:
     
     def edited_channel_post(self, command):
         def reg(old):
-            self.commands['edited_channel_post']['commands'].append({'run': old, 'match': re.compile(command)})
+            if command is True:
+                self.commands['edited_channel_post']['free'] = old
+            else:
+                self.commands['edited_channel_post']['commands'].append({'run': old, 'match': re.compile(command)})
             return old
         return reg
     
