@@ -32,7 +32,7 @@ def usual_reply(pic_id, page=0, count=PACK_OF_SIMILAR_POSTS, only_pics=0, by_one
             repl.inlinekeyboardbutton('Show more', callback_data='show i{} p{} c{} o{} b{}'.format(pic_id, page, count, only_pics, by_one)) if show else repl.inlinekeyboardbutton('Hide more', callback_data='hide i{} p{} c{} o{} b{}'.format(pic_id, page, count, only_pics, by_one))]]
 
 def more_reply(pic_id, page=0, count=PACK_OF_SIMILAR_POSTS, only_pics=0, by_one=0):
-    usual = usual_reply(pic_id, page, count, only_pics, by_one)
+    usual = usual_reply(pic_id, page, count, only_pics, by_one, False)
     params = 'i{} p{} c{} o{} b{}'.format(pic_id, page, count, only_pics, by_one)
     usual.append([repl.inlinekeyboardbutton('➖', callback_data='count_minus {}'.format(params)),
                   repl.inlinekeyboardbutton('{} ⬇️'.format(count), callback_data='similar {}'.format(params)),
@@ -72,7 +72,7 @@ def check_message_error(func):
         try:
             func(a)
         except:
-            a.msg('Error!!!', reply_markup=repl.inlinekeyboardmarkup([[repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + a.args[1])]])).send()
+            a.msg('Error!!! Write to creator', reply_markup=repl.inlinekeyboardmarkup([[repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + a.args[1])]])).send()
     return new_func
     
 def check_callback_error(func):
@@ -80,7 +80,7 @@ def check_callback_error(func):
         try:
             func(a)
         except:
-            a.answer(text='Error!!!').send()
+            a.answer(text='Error!!! Write to creator').send()
     return new_func
 
 @b.inline_query('([0-9]+)')
