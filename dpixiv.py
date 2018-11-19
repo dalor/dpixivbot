@@ -109,7 +109,13 @@ class DPixivIllusts:
     def info(self, id):
         find_info = re.search('\}\)\((\{token\:.+\})\)\;\<\/script\>', self.get('https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + id))
         return json.loads(re.sub(r'([\,\{]) ?(\w+):', r'\1"\2":', find_info[1].replace(',}','}'))) if find_info else None
-        
+    
+    def info_packs(self, illusts):
+        json_pattern = re.compile('\}\)\((\{token\:.+\})\)\;\<\/script\>')
+        fix_json = re.compile(r'([\,\{]) ?(\w+):')
+        pages = self.get([{'url': 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + one, 'id': one} for one in illusts], list=True)
+        return [{'info': json.loads(fix_json.sub(r'\1"\2":', json_pattern.search(page['data'])[1].replace(',}','}'))), 'id': page['id']} for page in pages]
+    
     def urls(self, illusts): #Returns list of urls with id
         pattern_urls = re.compile(r'\"urls\"\:(\{.+\}),\"tags\"')
         pages = self.get([{'url': 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + one, 'id': one} for one in illusts], list=True)
