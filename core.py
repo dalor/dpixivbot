@@ -1,5 +1,5 @@
 from flask import Flask, request
-from dbot import Bot, inputmedia as inmed, reply_markup as repl, inlinequeryresult as iqr
+from dtelbot import Bot, inputmedia as inmed, reply_markup as repl, inlinequeryresult as iqr
 import json
 from dpixiv import DPixivIllusts
 import re
@@ -42,7 +42,7 @@ def more_reply(pic_id, page=0, count=PACK_OF_SIMILAR_POSTS, only_pics=0, by_one=
     return usual
 
 def prepare_picture(pic_id, pix_info, is_desc):
-    pic = pix_info['preload']['illust'][pic_id]
+    pic = pix_info[pic_id]
     if is_desc:
         tags = pixiv_tags(pic)
         tags.append('#pic_{}'.format(pic_id))
@@ -88,7 +88,7 @@ def check_callback_error(func):
 def picture_id__(a):
     pix_info = pix.info(a.args[1])
     if pix_info:
-        pic = pix_info['preload']['illust'][a.args[1]]
+        pic = pix_info[a.args[1]]
         reply_markup = {'inline_keyboard': [[repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + a.args[1]), repl.inlinekeyboardbutton('More', url='t.me/dpixivbot?start=' + a.args[1]), repl.inlinekeyboardbutton('Share', switch_inline_query=a.args[1])]]}
         a.answer([iqr(type='photo', id=0, photo_url=pic['urls']['original'], thumb_url=pic['urls']['thumb'], reply_markup=reply_markup), iqr(type='article', id=1, title=pic['title'], input_message_content={'message_text': '<a href="{}">{}</a>\n<b>Tags:</b> {}'.format(pic['urls']['original'], pic['title'], ', '.join(pixiv_tags(pic))), 'parse_mode': 'HTML'}, reply_markup=reply_markup)]).send()
 
@@ -118,7 +118,7 @@ def start(a):
 @b.message('/file[ _]([0-9]+)')
 @check_message_error
 def file(a):
-    pic = pix.info(a.args[1])['preload']['illust'][a.args[1]]
+    pic = pix.info(a.args[1])[a.args[1]]
     a.document(pic['urls']['original']).send()
 
 all_params = 'i([0-9]+) p([0-9]+) c([0-9]+) o([01]) b([01])'
@@ -219,7 +219,7 @@ def call_sim(a):
 @check_callback_error
 def ffile(a):
     a.answer(text='Sending...').send()
-    pic = pix.info(a.args[1])['preload']['illust'][a.args[1]]
+    pic = pix.info(a.args[1])[a.args[1]]
     b.document(pic['urls']['original'], chat_id=a.data['message']['chat']['id'], reply_to_message_id=a.data['message']['message_id']).send()
 
 @b.message(True)
