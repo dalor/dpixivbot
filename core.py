@@ -1,5 +1,5 @@
 from flask import Flask, request
-from dbot import Bot, inputmedia as inmed, reply_markup as repl, inlinequeryresult as iqr
+from dtelbot import Bot, inputmedia as inmed, reply_markup as repl, inlinequeryresult as iqr
 import json
 from dpixiv import DPixivIllusts
 import re
