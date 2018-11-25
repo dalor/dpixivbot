@@ -41,8 +41,7 @@ def more_reply(pic_id, page=0, count=PACK_OF_SIMILAR_POSTS, only_pics=0, by_one=
                   repl.inlinekeyboardbutton('{}📂'.format('' if int(by_one) else '✅'), callback_data='group {}'.format(params))])
     return usual
 
-def prepare_picture(pic_id, pix_info, is_desc):
-    pic = pix_info[pic_id]
+def prepare_picture(pic_id, pic, is_desc):
     if is_desc:
         tags = pixiv_tags(pic)
         tags.append('#pic_{}'.format(pic_id))
@@ -53,7 +52,7 @@ def prepare_picture(pic_id, pix_info, is_desc):
     return pic_url, description
 
 def send_picture(pic_id, chat_id, reply_to_message_id=None, is_desc=True):
-    pic_url, description = prepare_picture(pic_id, pix.info(pic_id), is_desc)
+    pic_url, description = prepare_picture(pic_id, pix.info(pic_id)[pic_id], is_desc)
     reply_markup = repl.inlinekeyboardmarkup(usual_reply(pic_id))
     result = b.photo(pic_url, chat_id=chat_id, caption=description, parse_mode='HTML', reply_to_message_id=reply_to_message_id if reply_to_message_id else '', reply_markup=reply_markup).send()
     if not result['ok']:
@@ -207,8 +206,8 @@ def call_sim(a):
             for pack in packs:
                 all_info = pix.info_packs(pack)
                 all_media = []
-                for one in all_info:
-                    pic_url, description = prepare_picture(one, all_info[one], is_desc)
+                for key, value in all_info.items():
+                    pic_url, description = prepare_picture(key, value, is_desc)
                     all_media.append(inmed.photo(pic_url, caption=description, parse_mode='HTML'))
                 result = b.media(all_media, chat_id=a.data['message']['chat']['id'], reply_to_message_id=a.data['message']['message_id']).send()
                 if not result['ok']:
