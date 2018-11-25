@@ -16,9 +16,14 @@ MAX_COUNT_POSTS = 500
 
 assert PACK_OF_SIMILAR_POSTS <= 10
 
-change_to_ = re.compile('[\.\-\/\!\★\・\☆\(\)]')
+change_to_ = re.compile('[\.\-\/\!\★\・\☆\(\)\*]')
 
 pixiv_tags = lambda pic: ['#{}{}'.format(change_to_.sub('_', t['tag']), '({})'.format(t['translation']['en']) if 'translation' in t else '') for t in pic['tags']['tags']]
+
+def shared_reply(pic_id):
+    return [[repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + pic_id),
+    repl.inlinekeyboardbutton('More', url='t.me/dpixivbot?start=' + pic_id),
+    repl.inlinekeyboardbutton('Share', switch_inline_query=pic_id)]]
 
 def min_split(list_, count):
     new_list = [list_[sp-count:sp] for sp in range(count, len(list_)+1, count)]
@@ -88,7 +93,7 @@ def picture_id__(a):
     pix_info = pix.info(a.args[1])
     if pix_info:
         pic = pix_info[a.args[1]]
-        reply_markup = {'inline_keyboard': [[repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + a.args[1]), repl.inlinekeyboardbutton('More', url='t.me/dpixivbot?start=' + a.args[1]), repl.inlinekeyboardbutton('Share', switch_inline_query=a.args[1])]]}
+        reply_markup = {'inline_keyboard': shared_reply(a.args[1])}
         a.answer([iqr(type='photo', id=0, photo_url=pic['urls']['original'], thumb_url=pic['urls']['thumb'], reply_markup=reply_markup), iqr(type='article', id=1, title=pic['title'], input_message_content={'message_text': '<a href="{}">{}</a>\n<b>Tags:</b> {}'.format(pic['urls']['original'], pic['title'], ', '.join(pixiv_tags(pic))), 'parse_mode': 'HTML'}, reply_markup=reply_markup)]).send()
 
 @b.inline_query('https\:\/\/www\.pixiv\.net\/member\_illust\.php\?.*illust\_id\=([0-9]+)')
@@ -117,8 +122,7 @@ def start(a):
 @b.message('/file[ _]([0-9]+)')
 @check_message_error
 def file(a):
-    pic = pix.info(a.args[1])[a.args[1]]
-    a.document(pic['urls']['original']).send()
+    a.document(pix.info(a.args[1])[a.args[1]]['urls']['original']).send()
 
 all_params = 'i([0-9]+) p([0-9]+) c([0-9]+) o([01]) b([01])'
 
@@ -206,7 +210,8 @@ def call_sim(a):
             for pack in packs:
                 all_info = pix.info_packs(pack)
                 all_media = []
-                for key, value in all_info.items():
+                for one in all_info:
+                    key, value = list(one.items())[0]
                     pic_url, description = prepare_picture(key, value, is_desc)
                     all_media.append(inmed.photo(pic_url, caption=description, parse_mode='HTML'))
                 result = b.media(all_media, chat_id=a.data['message']['chat']['id'], reply_to_message_id=a.data['message']['message_id']).send()
