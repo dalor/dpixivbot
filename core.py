@@ -208,7 +208,7 @@ def call_sim(a):
                 all_info = pix.info_packs(pack)
                 all_media = []
                 for one in all_info:
-                    pic_url, description = prepare_picture(one['id'], one['info'], is_desc)
+                    pic_url, description = prepare_picture(one, all_info[one], is_desc)
                     all_media.append(inmed.photo(pic_url, caption=description, parse_mode='HTML'))
                 result = b.media(all_media, chat_id=a.data['message']['chat']['id'], reply_to_message_id=a.data['message']['message_id']).send()
                 if not result['ok']:
