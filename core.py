@@ -1,5 +1,7 @@
 from flask import Flask, request
 from dtelbot import Bot, inputmedia as inmed, reply_markup as repl, inlinequeryresult as iqr
+import asyncio
+import aiohttp
 import json
 from dpixiv import DPixivIllusts
 import re
@@ -16,12 +18,32 @@ MAX_COUNT_POSTS = 500
 
 assert PACK_OF_SIMILAR_POSTS <= 10
 
-change_to_ = re.compile('[\.\-\/\!\★\・\☆\(\)\*]')
+change_to_ = re.compile('[\.\-\/\!\★\・\☆\(\)\*\+]')
 
 pixiv_tags = lambda pic: ['#{}{}'.format(change_to_.sub('_', t['tag']), '({})'.format(t['translation']['en']) if 'translation' in t else '') for t in pic['tags']['tags']]
 
+async def __fetch_get(url, session, params=None, ref=None):
+    async with session.get(url, params=params, headers={'Referer': ref} if ref else None) as resp:
+        return await resp.text()
+
+async def __fetch_post(url, session, data, ref=None):
+    async with session.post(url, data=data, headers={'Referer': ref} if ref else None) as resp:
+        return await resp.text()
+
+def get(url, params=None, ref=None):
+    async def __get(url, params=None, ref=None):
+        async with aiohttp.ClientSession() as session:
+            return await (__fetch_get(url, session, params, ref))
+    return asyncio.new_event_loop().run_until_complete(__get(url, params, ref))
+
+def post(url, data=None, ref=None):
+    async def __get(url, data=None, ref=None):
+        async with aiohttp.ClientSession() as session:
+            return await (__fetch_post(url, session, data, ref))
+    return asyncio.new_event_loop().run_until_complete(__get(url, data, ref))
+
 def shared_reply(pic_id):
-    return [[repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id=' + pic_id),
+    return [[repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(pic_id)),
     repl.inlinekeyboardbutton('More', url='t.me/dpixivbot?start=' + pic_id),
     repl.inlinekeyboardbutton('Share', switch_inline_query=pic_id)]]
 
@@ -123,6 +145,24 @@ def start(a):
 @check_message_error
 def file(a):
     a.document(pix.info(a.args[1])[a.args[1]]['urls']['original']).send()
+    
+@b.channel_post('find')
+@b.message('find')
+@check_message_error
+def find_(a):
+    if 'reply_to_message' in a.data and 'photo' in a.data['reply_to_message']:
+        picture = a.data['reply_to_message']['photo'][-1]['file_id']
+        data = {
+            'url': b.fileurl(picture),
+            'frame': 1,
+            'hide': 0,
+            'database': 5
+        }
+        page = post('http://saucenao.com/search.php', data=data)
+        find = re.search('pixiv\.net\/member\_illust\.php\?mode\=medium\&illust\_id\=([0-9]+)', page)
+        if find:
+            send_picture(find[1], a.data['chat']['id'])
+        
 
 all_params = 'i([0-9]+) p([0-9]+) c([0-9]+) o([01]) b([01])'
 
