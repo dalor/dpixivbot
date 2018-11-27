@@ -2,4 +2,4 @@ flask
 gunicorn
 aiohttp
 dpixiv
-dtelbot
+dtelbot>=0.0.4
