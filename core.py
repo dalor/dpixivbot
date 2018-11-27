@@ -16,6 +16,21 @@ PACK_OF_SIMILAR_POSTS = 5 #<= 10
 
 MAX_COUNT_POSTS = 500
 
+INFO_TEXT = '''
+You can get picture by:\n
+/pic {id} OR /pic_{id}\n
+Forwarding pictures with description from this bot\n
+Sending the url of picture from pixiv (in text also)\n
+/find {other_picture_url}\n
+/find OR find OR Find - reply to any picture\n
+\nOther:\n
+/file {id} OR /file_{id} - Sending file by ID\n
+\nIn inline enter:\n
+ID\n
+url of picture from pixiv (in text also)\n
+\nHave a nice day :-)
+'''
+
 assert PACK_OF_SIMILAR_POSTS <= 10
 
 change_to_ = re.compile('[\.\-\/\!\★\・\☆\(\)\*\+]')
@@ -138,7 +153,11 @@ def start(a):
     if a.args[1]:
         pic_(a)
     else:
-        a.msg('/pic {picure_id}\nOr enter pixiv url').send()
+        a.msg('/help - for more information').send()
+
+@b.message('/help')
+def help(a):
+    a.msg(INFO_TEXT).send()
 
 @b.channel_post('/file[ _]([0-9]+)')
 @b.message('/file[ _]([0-9]+)')
@@ -146,14 +165,20 @@ def start(a):
 def file(a):
     a.document(pix.info(a.args[1])[a.args[1]]['urls']['original']).send()
     
-@b.channel_post('find')
-@b.message('find')
+@b.channel_post('\/?[Ff]ind ?(.*)')
+@b.message('\/?[Ff]ind ?(.*)')
 @check_message_error
 def find_(a):
-    if 'reply_to_message' in a.data and 'photo' in a.data['reply_to_message']:
+	if not a.args[1]:
+		pic_url = a.args[1]
+    elif 'reply_to_message' in a.data and 'photo' in a.data['reply_to_message']:
         picture = a.data['reply_to_message']['photo'][-1]['file_id']
+        pic_url = b.fileurl(picture)
+    else: 
+    	pic_url = None
+    if pic_url:
         data = {
-            'url': b.fileurl(picture),
+            'url': pic_url,
             'frame': 1,
             'hide': 0,
             'database': 5
