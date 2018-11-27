@@ -17,17 +17,16 @@ PACK_OF_SIMILAR_POSTS = 5 #<= 10
 MAX_COUNT_POSTS = 500
 
 INFO_TEXT = '''
-You can get picture by:\n
-/pic {id} OR /pic_{id}\n
-Forwarding pictures with description from this bot\n
-Sending the url of picture from pixiv (in text also)\n
-/find {other_picture_url}\n
-/find OR find OR Find - reply to any picture\n
-\nOther:\n
-/file {id} OR /file_{id} - Sending file by ID\n
-\nIn inline enter:\n
-ID\n
-url of picture from pixiv (in text also)\n
+You can get picture by:
+/pic {id} OR /pic_{id} OR #pic_{id}
+Reply /pic to picture
+Forward pictures with description from this bot
+Send the url of picture from pixiv (in text also)
+\nOther:
+/file {id} OR /file_{id} - Sending file by ID
+\nFor inline enter:
+ID
+URL of picture from pixiv (in text also)
 \nHave a nice day :-)
 '''
 
@@ -137,11 +136,20 @@ def picture_id__(a):
 def picture_id_url__(a):
     picture_id__(a)
 
-@b.channel_post('/pic[ _]([0-9]+)')
-@b.message('/pic[ _]([0-9]+)')
+@b.channel_post('[/#]?pic[ _]?([0-9]*)')
+@b.message('[/#]?pic[ _]?([0-9]*)')
 @check_message_error
 def pic_(a):
-    send_picture(a.args[1], a.data['chat']['id'])
+    if a.args[1]:
+        send_picture(a.args[1], a.data['chat']['id'])
+    elif 'reply_to_message' in a.data and 'photo' in a.data['reply_to_message'] and not send_by_tag(a.data['reply_to_message']):
+        picture_id = a.data['reply_to_message']['photo'][-1]['file_id']
+        pic_url = b.fileurl(picture_id)
+        data = {'url': pic_url, 'frame': 1, 'hide': 0, 'database': 5}
+        page = post('http://saucenao.com/search.php', data=data)
+        find = re.search('pixiv\.net\/member\_illust\.php\?mode\=medium\&illust\_id\=([0-9]+)', page)
+        if find:
+            send_picture(find[1], a.data['chat']['id'])
 
 @b.channel_post('.*https\:\/\/www\.pixiv\.net\/member\_illust\.php\?.*illust\_id\=([0-9]+)()')
 @b.message('.*https\:\/\/www\.pixiv\.net\/member\_illust\.php\?.*illust\_id\=([0-9]+)()')
@@ -164,25 +172,6 @@ def help(a):
 @check_message_error
 def file(a):
     a.document(pix.info(a.args[1])[a.args[1]]['urls']['original']).send()
-    
-@b.channel_post('\/?[Ff]ind ?(.*)')
-@b.message('\/?[Ff]ind ?(.*)')
-@check_message_error
-def find_(a):
-	if not a.args[1]:
-		pic_url = a.args[1]
-	elif 'reply_to_message' in a.data and 'photo' in a.data['reply_to_message']:
-		picture = a.data['reply_to_message']['photo'][-1]['file_id']
-		pic_url = b.fileurl(picture)
-	else: 
-		pic_url = None
-	if pic_url:
-		data = {'url': pic_url, 'frame': 1, 'hide': 0, 'database': 5}
-		page = post('http://saucenao.com/search.php', data=data)
-		find = re.search('pixiv\.net\/member\_illust\.php\?mode\=medium\&illust\_id\=([0-9]+)', page)
-		if find:
-			send_picture(find[1], a.data['chat']['id'])
-        
 
 all_params = 'i([0-9]+) p([0-9]+) c([0-9]+) o([01]) b([01])'
 
@@ -286,14 +275,18 @@ def ffile(a):
     pic = pix.info(a.args[1])[a.args[1]]
     b.document(pic['urls']['original'], chat_id=a.data['message']['chat']['id'], reply_to_message_id=a.data['message']['message_id']).send()
 
-@b.message(True)
-def check_tag_in_mess(a):
-    if 'caption_entities' in a.data:
-        last_entiti = a.data['caption_entities'][-1]
-        tag = a.data['caption'][last_entiti['offset']:last_entiti['offset'] + last_entiti['length']]
+def send_by_tag(mess):
+    if 'caption_entities' in mess:
+        last_entiti = mess['caption_entities'][-1]
+        tag = mess['caption'][last_entiti['offset']:last_entiti['offset'] + last_entiti['length']]
         check_tag = re.match('#pic_([0-9]+)', tag)
         if check_tag:
-            send_picture(check_tag[1], a.data['chat']['id'])
+            send_picture(check_tag[1], mess['chat']['id'])
+            return True
+
+@b.message(True)
+def check_tag_in_mess(a):
+    send_by_tag(a.data)
 
 @app.route('/this_is_hook', methods=['POST']) #Telegram should be connected to this hook
 def webhook():
