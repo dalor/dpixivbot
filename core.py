@@ -113,11 +113,11 @@ def group(a):
 
 @b.callback_query('next {}'.format(all_params))
 def next_pic(a):
-    a.answer(text=dpix.change_pic(a, 1)).send()
+    dpix.turn_right_or_left(a, 1)
     
 @b.callback_query('prev {}'.format(all_params))
 def prev_pic(a):
-    a.answer(text=dpix.change_pic(a, -1)).send()
+    dpix.turn_right_or_left(a, -1)
 
 @b.callback_query('similar {}'.format(all_params))
 def call_sim(a):

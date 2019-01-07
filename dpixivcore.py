@@ -262,7 +262,7 @@ class DPixiv:
                 message_id=a.data['message']['message_id'],
                 reply_markup=reply_markup).send()
             if not result['ok']:
-                return self.change_pic(a, s - 1 if s < 0 else s - 1)
+                return None
         else:
             self.b.edittext(caption, parse_mode='HTML',
             chat_id=a.data['message']['chat']['id'],
@@ -270,6 +270,14 @@ class DPixiv:
             reply_markup=reply_markup).send()
         return '{}/{}'.format(npic + 1, mppic)
     
+    def turn_right_or_left(self, a, s):
+        first_s = s
+        mess = self.change_pic(a, s)
+        while not mess:
+            s = s - 1 if s < 0 else s + 1
+            mess = self.change_pic(a, s)
+        a.answer(text=mess).send()
+
     def send_pack_by_one(self, ids, chat_id, reply_to_message_id=None, is_desc=True):
         for id_ in ids:
             self.send_picture(id_, chat_id, reply_to_message_id=reply_to_message_id, is_desc=is_desc)
