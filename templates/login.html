@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login to pixivbot</title>
+    <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <style>
+    body {
+        background: #99e6ff;
+        font-family: HiraginoSans-W3,Hiragino Kaku Gothic Pro,メイリオ,Meiryo,Verdana,sans-serif;
+    }
+    .login_panel {
+        background: #eee;
+        border-radius: 10px;
+        display: block;
+        margin-top: 20vh;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 360px;
+        padding: 2%;
+        opacity: 0.9;
+    }
+    .login_panel h2 {
+        color: #258cff;
+        text-align: center;
+    }
+    .login_panel h2 a {
+        color: #0877f3;
+        text-decoration: none;
+    }
+    .login_panel form {
+        margin-top: 40px;
+    }
+    .login_panel input {
+        width: 95%;
+        height: 40px;
+        border: 1px solid #cdd9e0;
+        padding: 0 0 0 10px;
+    }
+    .input_login {
+        border-radius: 5px 5px 0 0;
+    }
+    .input_password {
+        border-radius: 0 0 5px 5px;
+    }
+    .input_button {
+        width: 98%;
+        height: 40px;
+        border: none;
+        border-radius: 5px;
+        background-color: #258cff;
+        color: #fff;
+        font-weight: 700;
+        margin-top: 20px;
+        cursor: pointer;
+    }
+    </style>
+</head>
+<body>
+<div class='login_panel'>
+    <h2>Use this form to log in your pixiv account to <a href='https://t.me/dpixivbot' target='_blank'>@pixivbot</a></h2>
+    <form action='/login' method='POST'>
+    <input class='input_login' type='text' name='login' placeholder='Login'>
+    <input class='input_password' type='password' name='password' placeholder='Password'>
+    <button class='input_button' type='submit'>Login</button>
+    </form>
+</div>
+</body>
+</html>
