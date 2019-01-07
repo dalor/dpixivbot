@@ -273,7 +273,7 @@ class DPixiv:
     def turn_right_or_left(self, a, s):
         first_s = s
         mess = self.change_pic(a, s)
-        while not mess:
+        while not mess and abs(s) < self.PACK_OF_SIMILAR_POSTS:
             s = s - 1 if s < 0 else s + 1
             mess = self.change_pic(a, s)
         a.answer(text=mess).send()
