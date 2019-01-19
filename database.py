@@ -34,7 +34,7 @@ class Database:
             cur.execute('INSERT INTO users (chat_id, login, password, session, tt) VALUES (%s, %s, %s, %s, %s)',
                 (chat_id, pix_acc.login, pix_acc.password, pix_acc.get_session(), pix_acc.tt))
         else:
-            cur.execute('UPDATE users SET chat_id = %s, login = %s, password = %s, session = %s, tt = %s WHERE chat_id = %s',
+            cur.execute('UPDATE users SET login = %s, password = %s, session = %s, tt = %s WHERE chat_id = %s',
                 (pix_acc.login, pix_acc.password, pix_acc.get_session(), pix_acc.tt, chat_id))
         self.conn.commit()
         cur.close()
