@@ -322,14 +322,18 @@ class DPixiv:
             while token in self.tokens:
                 token = str(random_token())
             self.tokens[token] = new_acc
+            print(token)
             return token
     
     def connect_user_to_id(self, a):
         token = a.args[1]
         user_acc = self.tokens.get(token)
+        print(token)
+        print(self.tokens)
         if user_acc:
             self.db.set_user(a.data['chat']['id'], user_acc)
             a.msg('Succesfull connected').send()
+            del self.tokens[token]
         else:
             a.msg('Wrong token').send()
             
