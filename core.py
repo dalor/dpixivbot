@@ -1,9 +1,10 @@
 from flask import Flask, request, render_template, redirect
 from dtelbot import Bot, inputmedia as inmed, reply_markup as repl, inlinequeryresult as iqr
 from arguments import default_arguments as all_params
-from dpixiv import DPixivIllusts
+from user import User
 import re
 import os
+import json
 from dpixivcore import DPixiv
 
 BOT_ID = os.environ['BOT_ID']
@@ -22,6 +23,13 @@ Forward pictures with description from this bot
 Send the url of picture from pixiv (in text also)
 \nOther:
 /file {id} OR /file_{id} - Sending file by ID
+/helpingif - Cool type of help
+/login - to connect your pixiv account
+\nFor loggined users:
+/settings
+/recommends
+/following
+/bookmarks
 \nFor inline enter:
 ID
 URL of picture from pixiv (in text also)
@@ -29,11 +37,17 @@ URL of picture from pixiv (in text also)
 '''
 DATABASE = os.environ['DATABASE_URL']
 
+GIF_HELP = [
+    {'name': 'Base usage', 'file_id': 'CgADAgAD2gIAAhFWKUrF2QABsAOBqoMC'}, 
+    {'name': 'Load similar pictures', 'file_id': 'CgADAgAD2QIAAhFWKUokVmThHkRdogI'},
+    {'name': 'Navigation and sharing', 'file_id': 'CgADAgAD2AIAAhFWKUocJxto68RDiAI'}
+    ]
+
 assert PACK_OF_SIMILAR_POSTS <= 10
 
 app = Flask(__name__)
 b = Bot(BOT_ID)
-pix = DPixivIllusts(PIX_LOGIN, PIX_PASSWORD, PIX_SESSION)
+pix = User(PIX_LOGIN, PIX_PASSWORD, PIX_SESSION)
 
 dpix = DPixiv(b, pix, DATABASE, BOTNAME, PACK_OF_SIMILAR_POSTS, MAX_COUNT_POSTS)
 
@@ -44,6 +58,10 @@ def picture_id__(a):
 @b.inline_query('https\:\/\/www\.pixiv\.net\/member\_illust\.php\?.*illust\_id\=([0-9]+)()')
 def picture_id_url__(a):
     dpix.answer_inline_picture(a)
+
+@b.channel_post('/?pic[ _]?([0-9]+)_?([0-9]*)')
+def channel_pic(a):
+    dpix.send_to_channel(a)
 
 @b.message('/?pic[ _]?([0-9]*)_?([0-9]*)')
 def pic_(a):
@@ -61,7 +79,7 @@ def start_token(a):
 def ufollowing(a):
     dpix.user_following(a)
     
-@b.message('/recommends[ _]?([0-9]*)')
+@b.message('/recommends')
 def urecommender(a):
     dpix.user_recommender(a)
     
@@ -72,7 +90,16 @@ def ubookmarks(a):
 @b.message('/start ?([0-9]*)_?([0-9]*)')
 def start(a):
     if not dpix.send_by_id(a):
-        a.msg('/help - for more information').send()
+        help_in_gif(a)
+
+def reply_markup_for_gifhelp(id_=None):
+    return [[repl.inlinekeyboardbutton(GIF_HELP[i]['name'], callback_data='help {}'.format(i))] for i in range(len(GIF_HELP)) if i != id_]
+
+@b.message('/helpingif')
+def help_in_gif(a):
+    id_ = 0
+    a.animation(GIF_HELP[id_]['file_id'], caption=GIF_HELP[id_]['name'],
+        reply_markup=repl.inlinekeyboardmarkup(reply_markup_for_gifhelp(id_))).send()
 
 @b.message('/help')
 def help(a):
@@ -81,9 +108,13 @@ def help(a):
 @b.message('/login')
 def login_url(a):
     a.msg('Use this url to log in your pixiv account', 
-    reply_markup=repl.inlinekeyboardmarkup([[repl.inlinekeyboardbutton('Log in', url=LOGIN_URL)]])).send()
+        reply_markup=repl.inlinekeyboardmarkup([[repl.inlinekeyboardbutton('Log in', url=LOGIN_URL)]])).send()
 
-@b.message('/file[ _]([0-9]+)_?([0-9]*)')
+@b.message('/settings')
+def default_settings(a):
+    dpix.change_default_settings(a)
+
+@b.message('/file[ _]([0-9]+)_?p?([0-9]*)')
 def file(a):
     dpix.send_file_by_id(a)
 
@@ -126,10 +157,41 @@ def call_sim(a):
 @b.callback_query('file')
 def ffile(a):
     dpix.send_file_by_tag(a)
+    
+@b.callback_query('default_minus')
+def default_minus(a):
+    dpix.default_plus_or_minus(a, -1)
+
+@b.callback_query('default_plus')
+def default_plus(a):
+    dpix.default_plus_or_minus(a, 1)
+    
+@b.callback_query('default_opics')
+def default_opics(a):
+    dpix.default_only_pics(a)
+    
+@b.callback_query('default_group')
+def default_group(a):
+    dpix.default_by_one(a)
+    
+@b.callback_query('help ([0-9]+)')
+def spec_help(a):
+    id_ = int(a.args[1])
+    help_ = GIF_HELP[id_]
+    b.editmedia(
+            json.dumps(inmed.animation(help_['file_id'], caption=help_['name'])),
+            chat_id=a.data['message']['chat']['id'],
+            message_id=a.data['message']['message_id'],
+            reply_markup=repl.inlinekeyboardmarkup(reply_markup_for_gifhelp(id_))
+        ).send()
 
 @b.message(True)
 def check_tag_in_mess(a):
     dpix.send_by_tag(a.data)
+
+@b.channel_post(True)
+def check_tag_in_post(a):
+    dpix.send_to_channel(a, by_tag=True)
 
 @app.route('/')
 def index_login():

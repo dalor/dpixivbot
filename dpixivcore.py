@@ -1,5 +1,5 @@
 from dtelbot import Bot, inputmedia as inmed, reply_markup as repl, inlinequeryresult as iqr
-from dpixiv import DPixivIllusts
+from user import User
 from arguments import Parameters
 from tools import Tools
 from database import Database
@@ -84,13 +84,14 @@ class DPixiv:
     def get_pix(self, chat_id, anyway=True):
         return self.db.get_user(chat_id, anyway)
     
-    def send_picture(self, pic_id, chat_id, ppic=0, reply_to_message_id=None, is_desc=True):
-        pix = self.get_pix(chat_id)
+    def send_picture(self, pic_id, chat_id, ppic=0, reply_to_message_id=None, is_desc=True, pix=None):
+        pix = self.get_pix(chat_id) if not pix else pix
         pic_info = pix.info(pic_id)
         if pic_info:
             pic_info = pic_info[pic_id]
             reply_args = Parameters(pic_id=pic_id, mppic=pic_info['pageCount'],
-                ppic=ppic if ppic < pic_info['pageCount'] and ppic > 0 else 0)
+                ppic=ppic if ppic < pic_info['pageCount'] and ppic > 0 else 0,
+                count=pix.count, only_pics=pix.only_pics, by_one=pix.by_one)
             pic = self.prepare_picture(pic_info, reply_args.ppic)
             reply_markup = repl.inlinekeyboardmarkup(self.reply(reply_args)) if is_desc else ''
             result = self.b.photo(pic['url'], chat_id=chat_id, caption=pic['caption'] if is_desc else '', parse_mode='HTML',
@@ -140,15 +141,28 @@ class DPixiv:
             first = mess['entities'][0]
         if first and first['type'] == 'text_link':
             return first['url']
-            
-    def send_by_tag(self, mess):
+    
+    def find_pixiv_id_in_mess(self, mess):
         pic_url = self.get_first_url(mess)
         if pic_url:
-            pixiv_id = check_pixiv_id.match(pic_url)
-            if pixiv_id:
-                self.send_picture(pixiv_id[1], mess['chat']['id'], ppic=int(pixiv_id[2]))
-                return True
-          
+            return check_pixiv_id.match(pic_url)
+    
+    def send_by_tag(self, mess):
+        pixiv_id = self.find_pixiv_id_in_mess(mess)
+        if pixiv_id:
+            self.send_picture(pixiv_id[1], mess['chat']['id'], ppic=int(pixiv_id[2]))
+            return True
+    
+    def send_to_channel(self, a, by_tag=False):
+        pixiv_id = self.find_pixiv_id_in_mess(a.data) if by_tag else a.args
+        if pixiv_id:
+            picture = self.get_pix(None).info(pixiv_id[1])[pixiv_id[1]]
+            ppic = int(pixiv_id[2]) if pixiv_id[2] else 0
+            pic = self.prepare_picture(picture, ppic)
+            reply = self.shared_reply(pixiv_id[1], ppic)
+            a.photo(pic['url'], reply_markup=repl.inlinekeyboardmarkup(self.shared_reply(pixiv_id[1], ppic))).send()
+            a.delete().send()
+    
     def send_file_by_id(self, a):
         pic_info = self.get_pix(a.data['chat']['id']).info(a.args[1])[a.args[1]]
         if pic_info:
@@ -167,10 +181,13 @@ class DPixiv:
         else:
             a.answer(text='Wrong url').send()
     
-    def edit_reply(self, a, args):
+    def edit_reply_for_callback(self, a, reply):
         self.b.editreplymarkup(chat_id=a.data['message']['chat']['id'],
             message_id=a.data['message']['message_id'],
-            reply_markup=repl.inlinekeyboardmarkup(self.reply(args))).send()
+            reply_markup=repl.inlinekeyboardmarkup(reply)).send()
+    
+    def edit_reply(self, a, args):
+        self.edit_reply_for_callback(a, self.reply(args))
         
     def make_show_or_hide(self, a, show):
         args = self.parse_args(a)
@@ -192,23 +209,21 @@ class DPixiv:
         args = self.parse_args(a)
         if args.only_pics:
             args.only_pics = 0
-            self.edit_reply(a, args)
-            a.answer(text='Will send without any description')
+            a.answer(text='Will send without any description').send()
         else:
             args.only_pics = 1
-            self.edit_reply(a, args)
-            a.answer(text='Will send with title and text')
+            a.answer(text='Will send with title and text').send()
+        self.edit_reply(a, args)
             
     def by_one_or_not(self, a):
         args = self.parse_args(a)
         if args.by_one:
             args.by_one = 0
-            self.edit_reply(a, args)
-            a.answer(text='Will send in group')
+            a.answer(text='Will send in group').send()
         else:
             args.by_one = 1
-            self.edit_reply(a, args)
-            a.answer(text='Will send by one')
+            a.answer(text='Will send by one').send()
+        self.edit_reply(a, args)
     
     def return_format_to_text(self, caption, caption_entities):
         new_caption = ''
@@ -278,13 +293,15 @@ class DPixiv:
             mess = self.change_pic(a, s)
         a.answer(text=mess).send()
 
-    def send_pack_by_one(self, ids, chat_id, reply_to_message_id=None, is_desc=True):
+    def send_pack_by_one(self, ids, chat_id, reply_to_message_id=None, is_desc=True, pix=None):
+        pix = self.get_pix(chat_id) if not pix else pix
         for id_ in ids:
-            self.send_picture(id_, chat_id, reply_to_message_id=reply_to_message_id, is_desc=is_desc)
+            self.send_picture(id_, chat_id, reply_to_message_id=reply_to_message_id, is_desc=is_desc, pix=pix)
     
-    def send_packs(self, ids, chat_id, reply_to_message_id=None, is_desc=True):
+    def send_packs(self, ids, chat_id, reply_to_message_id=None, is_desc=True, pix=None):
+        pix = self.get_pix(chat_id) if not pix else pix
         for pack in Tools().min_split(ids, self.PACK_OF_SIMILAR_POSTS):
-            all_info = self.get_pix(chat_id).info_packs(pack)
+            all_info = pix.info_packs(pack)
             all_media = []
             for one in all_info:
                 key, value = list(one.items())[0]
@@ -293,30 +310,36 @@ class DPixiv:
             result = self.b.media(all_media, chat_id=chat_id,
                 reply_to_message_id=reply_to_message_id if reply_to_message_id else '').send()
             if not result['ok']:
-                self.send_pack_by_one(pack, chat_id, reply_to_message_id=reply_to_message_id, is_desc=is_desc)
+                self.send_pack_by_one(pack, chat_id, reply_to_message_id=reply_to_message_id, is_desc=is_desc, pix=pix)
+    
+    def send_pictures(self, ids, chat_id, args=None, reply_to_message_id=None, pix=None):
+        is_desc = not ((args and args.only_pics) or (pix and pix.only_pics))
+        pix = self.get_pix(chat_id) if not pix else pix
+        by_one = args.by_one if args else pix.by_one
+        if by_one:
+            self.send_pack_by_one(ids, chat_id,
+                reply_to_message_id=reply_to_message_id, is_desc=is_desc, pix=pix)
+        else:
+            self.send_packs(ids, chat_id,
+                reply_to_message_id=reply_to_message_id, is_desc=is_desc, pix=pix)
     
     def send_similar(self, a):
         args = self.parse_args(a)
-        page = args.page
         count = args.count
-        limit = page * self.PACK_OF_SIMILAR_POSTS + count
+        limit = args.page * self.PACK_OF_SIMILAR_POSTS + count
         if limit > self.MAX_COUNT_POSTS:
             a.answer(text='This is limit').send()
         else:
             args.page = limit // self.PACK_OF_SIMILAR_POSTS
-            self.edit_reply(a, args)
-            sim_ids = self.get_pix(a.data['message']['chat']['id']).similar(args.pic_id, limit=limit)[limit - count:]
+            pix = self.get_pix(a.data['message']['chat']['id'])
+            sim_ids = pix.similar(args.pic_id, limit=limit)[limit - count:]
             a.answer(text='Loading {} similar pictures from {} to {}'.format(count, limit + 1 - count, limit)).send()
-            is_desc = not args.only_pics
-            if args.by_one:
-                self.send_pack_by_one(sim_ids, a.data['message']['chat']['id'],
-                    reply_to_message_id=a.data['message']['message_id'], is_desc=is_desc)
-            else:
-                self.send_packs(sim_ids, a.data['message']['chat']['id'],
-                    reply_to_message_id=a.data['message']['message_id'], is_desc=is_desc)
+            self.edit_reply(a, args)
+            self.send_pictures(sim_ids, a.data['message']['chat']['id'], args=args,
+                reply_to_message_id=a.data['message']['message_id'], pix=pix)
     
     def reg_temp_token(self, login, password):
-        new_acc = DPixivIllusts(login, password)
+        new_acc = User(login, password)
         if new_acc.tt:
             token = str(random_token())
             while token in self.tokens:
@@ -335,27 +358,104 @@ class DPixiv:
             a.msg('Wrong token').send()
             
     def is_logged(old):
-        def new(self, a):
-            pix = self.get_pix(a.data['chat']['id'], False)
-            if pix:
-                return old(self, a, pix)
-            else:
-                a.msg('Try to /login at first').send()
+        def new(self, a, *args):
+            chat_id = None
+            if a.type == 'message':
+                chat_id = a.data['chat']['id']
+            elif a.type == 'callback_query':
+                chat_id = a.data['message']['chat']['id']
+            if chat_id:
+                pix = self.get_pix(chat_id, False)
+                if pix:
+                    return old(self, a, pix, *args)
+                else:
+                    a.msg('Try to /login at first').send()
         return new
     
     @is_logged
     def user_following(self, a, pix):
-        follow_ids = pix.new_work_following(a.args[1] if a.args[1] else 1)
-        self.send_pack_by_one(follow_ids, a.data['chat']['id'])
+        follow_ids = []
+        last_id = int(pix.last_id)
+        count = int(pix.count)
+        if a.args[1]:
+            count = 20
+            follow_ids = pix.new_work_following(page=a.args[1])
+        elif last_id:
+            for i in range(self.MAX_COUNT_POSTS // 20 // self.PACK_OF_SIMILAR_POSTS): #Max_pages (5 * 5 * 200) with 500 pics
+                ids = pix.new_work_following(from_page=self.PACK_OF_SIMILAR_POSTS * i + 1, to_page=self.PACK_OF_SIMILAR_POSTS * (i + 1))
+                if ids:
+                    new_ids = [id_ for id_ in ids if int(id_) > last_id]
+                    follow_ids.extend(new_ids)
+                    if len(ids) != len(new_ids):
+                        break
+                else:
+                    break
+        else:
+            follow_ids = pix.new_work_following(page=1)
+        follow_ids.reverse()
+        if follow_ids:
+            if len(follow_ids) > count:
+                follow_ids = follow_ids[-count - 1:]
+            pix.last_id = follow_ids[-1]
+            self.db.save_user_settings(a.data['chat']['id'], pix)
+            self.send_pictures(follow_ids, a.data['chat']['id'], pix=pix)
+        else:
+            a.msg('Can`t find new works :(').send()
     
     @is_logged
     def user_recommender(self, a, pix):
-        recommended_ids = pix.recommender(count=a.args[1] if a.args[1] else 10)
-        self.send_pack_by_one(recommended_ids, a.data['chat']['id'])
+        recommended_ids = pix.recommender(count=pix.count)
+        self.send_pictures(recommended_ids, a.data['chat']['id'], pix=pix)
     
     @is_logged
     def user_bookmarks(self, a, pix):
         bookmarks_ids = pix.bookmarks(a.args[1] if a.args[1] else 1)
         self.send_pack_by_one(bookmarks_ids, a.data['chat']['id'])
     
+    def reply_for_default_settings(self, pix):
+        return [[
+            repl.inlinekeyboardbutton('➖', callback_data='default_minus'),
+            repl.inlinekeyboardbutton('{} ⬇️'.format(pix.count), callback_data='lol'),
+            repl.inlinekeyboardbutton('➕', callback_data='default_plus'),
+            repl.inlinekeyboardbutton('🖼' if pix.only_pics else '📰', callback_data='default_opics'),
+            repl.inlinekeyboardbutton('📄' if pix.by_one else '📂', callback_data='default_group')
+        ]]
+    
+    @is_logged
+    def change_default_settings(self, a, pix):
+        a.msg('Change default settings', 
+            reply_markup=repl.inlinekeyboardmarkup(self.reply_for_default_settings(pix))).send()
+            
+    @is_logged
+    def default_plus_or_minus(self, a, pix, turn):
+        count = pix.count - self.PACK_OF_SIMILAR_POSTS if turn < 0 else pix.count + self.PACK_OF_SIMILAR_POSTS
+        if count < self.PACK_OF_SIMILAR_POSTS or count > self.MAX_COUNT_POSTS:
+            a.answer(text='This is limit').send()
+        else:
+            pix.count = count
+            self.edit_reply_for_callback(a, self.reply_for_default_settings(pix))
+            a.answer(text='After {}{} >> {}'.format('-' if turn < 0 else '+', self.PACK_OF_SIMILAR_POSTS, count)).send()
+        self.db.save_user_settings(a.data['message']['chat']['id'], pix)
+    
+    @is_logged
+    def default_only_pics(self, a, pix):
+        if pix.only_pics:
+            pix.only_pics = 0
+            a.answer(text='Will send without any description').send()
+        else:
+            pix.only_pics = 1
+            a.answer(text='Will send with title and text').send()
+        self.db.save_user_settings(a.data['message']['chat']['id'], pix)
+        self.edit_reply_for_callback(a, self.reply_for_default_settings(pix))
+    
+    @is_logged
+    def default_by_one(self, a, pix):
+        if pix.by_one:
+            pix.by_one = 0
+            a.answer(text='Will send in group').send()
+        else:
+            pix.by_one = 1
+            a.answer(text='Will send by one').send()
+        self.db.save_user_settings(a.data['message']['chat']['id'], pix)
+        self.edit_reply_for_callback(a, self.reply_for_default_settings(pix))
     

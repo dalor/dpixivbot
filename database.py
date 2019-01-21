@@ -1,5 +1,5 @@
 import psycopg2
-from dpixiv import DPixivIllusts
+from user import User
 
 class Database:
     def __init__(self, DATABASE_URL, default):
@@ -18,7 +18,10 @@ class Database:
         password TEXT NOT NULL,
         session TEXT,
         tt TEXT,
-        last_id INTEGER)
+        last_id INTEGER,
+        count INTEGER,
+        only_pics INTEGER,
+        by_one INTEGER)
         ''')
         self.conn.commit()
         cur.close()
@@ -47,15 +50,22 @@ class Database:
     
     def get_user_from_db(self, chat_id):
         cur = self.conn.cursor()
-        cur.execute('SELECT login, password, session, tt FROM users WHERE chat_id = %s', (chat_id, ))
+        cur.execute('SELECT login, password, session, tt, last_id, count, only_pics, by_one FROM users WHERE chat_id = %s', (chat_id, ))
         result = cur.fetchone()
         cur.close()
         if result:
-            pix_acc = DPixivIllusts(*result)
+            pix_acc = User(*result)
             if pix_acc.tt:
                 if pix_acc.get_session() != result[2] or pix_acc.tt != result[3]:
                     self.set_user(chat_id, pix_acc)
                 return pix_acc
+    
+    def save_user_settings(self, chat_id, pix_acc):
+        cur = self.conn.cursor()
+        cur.execute('UPDATE users SET last_id = %s, count = %s, only_pics = %s, by_one = %s WHERE chat_id = %s',
+                (pix_acc.last_id, pix_acc.count, pix_acc.only_pics, pix_acc.by_one, chat_id))
+        self.conn.commit()
+        cur.close()
 
     def set_user_to_temp(self, chat_id, pix_acc):
         self.temp[chat_id] = pix_acc
@@ -63,7 +73,16 @@ class Database:
     def get_user_from_temp(self, chat_id):
         return self.temp.get(chat_id)
     
-    def get_user(self, chat_id, anyway=True):
+    def get_all_ids(self):
+        cur = self.conn.cursor()
+        cur.execute('SELECT chat_id FROM users')
+        results = cur.fetchall()
+        cur.close()
+        return [r[0] for r in results]
+    
+    def get_user(self, chat_id=None, anyway=True):
+        if not chat_id and anyway:
+            return self.pix
         user = self.get_user_from_temp(chat_id)
         if user is False:
             return self.pix if anyway else None

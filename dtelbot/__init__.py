@@ -10,10 +10,16 @@ def inlinequeryresult(type, id, **kwargs):
     return kwargs
 
 class inputmedia:
-    def photo(media, **kwargs):
-        kwargs['type'] = 'photo'
-        kwargs['media'] = media
+    def media(type_, media_, **kwargs):
+        kwargs['type'] = type_
+        kwargs['media'] = media_
         return kwargs
+        
+    def photo(media_, **kwargs):
+        return inputmedia.media('photo', media_, **kwargs)
+        
+    def animation(media_, **kwargs):
+        return inputmedia.media('animation', media_, **kwargs)
 
 class reply_markup:
     def inlinekeyboardmarkup(inline_keyboard):
@@ -100,8 +106,8 @@ class Message:
     def media(self, media, chat_id=None, **kwargs):
         return self.bot.media(media, self.data['chat']['id'] if not chat_id else chat_id, **kwargs)
         
-    def delete(self, message_id, chat_id=None):
-        return self.bot.delete(message_id, self.data['chat']['id'] if not chat_id else chat_id)
+    def delete(self, message_id=None, chat_id=None):
+        return self.bot.delete(self.data['message_id'] if not message_id else message_id, self.data['chat']['id'] if not chat_id else chat_id)
     
     def edittext(self, text, **kwargs):
         if not 'chat_id' in kwargs:
@@ -186,6 +192,11 @@ class Bot:
         kwargs['document'] = document
         kwargs['chat_id'] = chat_id
         return self.method('sendDocument', **kwargs)
+    
+    def animation(self, animation, chat_id, **kwargs):
+        kwargs['animation'] = animation
+        kwargs['chat_id'] = chat_id
+        return self.method('sendAnimation', **kwargs)
         
     def video(self, video, chat_id, **kwargs):
         kwargs['video'] = video
