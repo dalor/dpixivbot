@@ -50,9 +50,9 @@ OR
 DATABASE = os.environ['DATABASE_URL']
 
 GIF_HELP = [
-    {'name': 'Base usage', 'file_id': 'CgADAgADmwIAAnjbOUrDbE1UkPG8TQI'}, 
+    {'name': 'Base usage', 'file_id': 'CgADAgAD3wMAAsM_OUr6G1uUmZssjgI'}, 
     {'name': 'Load similar pictures', 'file_id': 'CgADAgAD3gMAAsM_OUqWHAXLTS60zwI'},
-    {'name': 'Navigation and sharing', 'file_id': 'CgADAgAD2AIAAhFWKUocJxto68RDiAI'}
+    {'name': 'Navigation and sharing', 'file_id': 'CgADAgADmwIAAnjbOUrDbE1UkPG8TQI'}
     ]
 
 assert PACK_OF_SIMILAR_POSTS <= 10
