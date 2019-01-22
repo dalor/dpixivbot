@@ -16,30 +16,42 @@ MAX_COUNT_POSTS = int(os.environ['MAX_COUNT_POSTS'])
 BOTNAME = os.environ['BOTNAME']
 LOGIN_URL = os.environ['LOGIN_URL']
 INFO_TEXT = '''
-You can get picture by:
-/pic {id} OR /pic_{id}
+<b>You can get picture by:</b>
+/pic <i>id</i> OR /pic_<i>id</i>
 Reply /pic to picture
 Forward pictures with description from this bot
-Send the url of picture from pixiv (in text also)
-\nOther:
-/file {id} OR /file_{id} - Sending file by ID
+Send the url of picture from pixiv
+Share from PixivApp to bot
+\n<b>Other:</b>
+/file <i>id</i> OR /file_<i>id</i> - Sending picture as document by ID
 /helpingif - Cool type of help
-/login - to connect your pixiv account
-\nFor loggined users:
-/settings
-/recommends
-/following
+/login - To connect your pixiv account and use next commands:
+/settings - Change <b>parameters</b> of sending pictures
+/recommends - Get pictures similar to your bookmarks(depends on <b>parameters</b>)
+/following - Get new pictures from your following
+/following <i>page</i> OR /following_<i>page</i> - Get 20 pictures from page with your following feed
 /bookmarks
 \nFor inline enter:
 ID
 URL of picture from pixiv (in text also)
+\n<b>Buttons</b>:
+🔽 - Show parameters
+🔼 - Hide parameters
+<b>Parameters</b>:
+📰 - With description(<b>recommended</b>)
+OR
+🖼 - Without description
+
+📂 - In group of 5 or less pictures
+OR
+📄 - By one with buttons of navigation
 \nHave a nice day :-)
 '''
 DATABASE = os.environ['DATABASE_URL']
 
 GIF_HELP = [
-    {'name': 'Base usage', 'file_id': 'CgADAgAD2gIAAhFWKUrF2QABsAOBqoMC'}, 
-    {'name': 'Load similar pictures', 'file_id': 'CgADAgAD2QIAAhFWKUokVmThHkRdogI'},
+    {'name': 'Base usage', 'file_id': 'CgADAgADmwIAAnjbOUrDbE1UkPG8TQI'}, 
+    {'name': 'Load similar pictures', 'file_id': 'CgADAgAD3gMAAsM_OUqWHAXLTS60zwI'},
     {'name': 'Navigation and sharing', 'file_id': 'CgADAgAD2AIAAhFWKUocJxto68RDiAI'}
     ]
 
@@ -103,7 +115,7 @@ def help_in_gif(a):
 
 @b.message('/help')
 def help(a):
-    a.msg(INFO_TEXT).send()
+    a.msg(INFO_TEXT, parse_mode='HTML').send()
 
 @b.message('/login')
 def login_url(a):

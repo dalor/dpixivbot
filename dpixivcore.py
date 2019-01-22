@@ -397,7 +397,7 @@ class DPixiv:
             if len(follow_ids) > count:
                 follow_ids = follow_ids[-count - 1:]
             pix.last_id = follow_ids[-1]
-            self.db.save_user_settings(a.data['chat']['id'], pix)
+            self.db.save_user_settings(a.data['chat']['id'])
             self.send_pictures(follow_ids, a.data['chat']['id'], pix=pix)
         else:
             a.msg('Can`t find new works :(').send()
@@ -435,7 +435,7 @@ class DPixiv:
             pix.count = count
             self.edit_reply_for_callback(a, self.reply_for_default_settings(pix))
             a.answer(text='After {}{} >> {}'.format('-' if turn < 0 else '+', self.PACK_OF_SIMILAR_POSTS, count)).send()
-        self.db.save_user_settings(a.data['message']['chat']['id'], pix)
+        self.db.save_user_settings(a.data['message']['chat']['id'])
     
     @is_logged
     def default_only_pics(self, a, pix):
@@ -445,7 +445,7 @@ class DPixiv:
         else:
             pix.only_pics = 1
             a.answer(text='Will send with title and text').send()
-        self.db.save_user_settings(a.data['message']['chat']['id'], pix)
+        self.db.save_user_settings(a.data['message']['chat']['id'])
         self.edit_reply_for_callback(a, self.reply_for_default_settings(pix))
     
     @is_logged
@@ -456,6 +456,6 @@ class DPixiv:
         else:
             pix.by_one = 1
             a.answer(text='Will send by one').send()
-        self.db.save_user_settings(a.data['message']['chat']['id'], pix)
+        self.db.save_user_settings(a.data['message']['chat']['id'])
         self.edit_reply_for_callback(a, self.reply_for_default_settings(pix))
     

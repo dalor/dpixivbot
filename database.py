@@ -60,12 +60,14 @@ class Database:
                     self.set_user(chat_id, pix_acc)
                 return pix_acc
     
-    def save_user_settings(self, chat_id, pix_acc):
-        cur = self.conn.cursor()
-        cur.execute('UPDATE users SET last_id = %s, count = %s, only_pics = %s, by_one = %s WHERE chat_id = %s',
-                (pix_acc.last_id, pix_acc.count, pix_acc.only_pics, pix_acc.by_one, chat_id))
-        self.conn.commit()
-        cur.close()
+    def save_user_settings(self, chat_id):
+        pix_acc = self.get_user_from_temp(chat_id)
+        if pix_acc:
+            cur = self.conn.cursor()
+            cur.execute('UPDATE users SET last_id = %s, count = %s, only_pics = %s, by_one = %s WHERE chat_id = %s',
+                    (pix_acc.last_id, pix_acc.count, pix_acc.only_pics, pix_acc.by_one, chat_id))
+            self.conn.commit()
+            cur.close()
 
     def set_user_to_temp(self, chat_id, pix_acc):
         self.temp[chat_id] = pix_acc
@@ -80,8 +82,8 @@ class Database:
         cur.close()
         return [r[0] for r in results]
     
-    def get_user(self, chat_id=None, anyway=True):
-        if not chat_id and anyway:
+    def get_user(self, chat_id, anyway=True):
+        if chat_id is None:
             return self.pix
         user = self.get_user_from_temp(chat_id)
         if user is False:
