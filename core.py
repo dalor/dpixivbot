@@ -168,7 +168,7 @@ def next_pic(a):
 def prev_pic(a):
     dpix.turn_right_or_left(a, -1)
 
-@b.callback_query('similar 0 ')
+@b.callback_query('similar i0 ')
 def save_default_set(a):
     dpix.save_default_settings(a)
 
