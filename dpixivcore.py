@@ -33,23 +33,23 @@ class DPixiv:
             show=int(args[8])
         )
         
-    def reply(self, args, usual=True):
+    def reply(self, args):
         reply_result = []
         params = args.format()
-        if usual and args.mppic > 1:
-            reply_result.append([
-                repl.inlinekeyboardbutton('◀️', callback_data='prev {}'.format(params)),
-                repl.inlinekeyboardbutton('▶️', callback_data='next {}'.format(params))
-                ])
-        if usual:
-            reply_result.append([
-                repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(args.pic_id)),
-                repl.inlinekeyboardbutton('Download file', callback_data='file'),
-                repl.inlinekeyboardbutton('Share', switch_inline_query=args.pic_id if not args.ppic else '{}_{}'.format(args.pic_id, args.ppic)),
-                repl.inlinekeyboardbutton('🔽', callback_data='show {}'.format(params)) 
-                if not args.show else repl.inlinekeyboardbutton('🔼', callback_data='hide {}'.format(params))
-                ])
-        if args.show or not usual:
+        if int(args.pic_id):
+            if args.mppic > 1:
+                reply_result.append([
+                    repl.inlinekeyboardbutton('◀️', callback_data='prev {}'.format(params)),
+                    repl.inlinekeyboardbutton('▶️', callback_data='next {}'.format(params))
+                    ])
+                reply_result.append([
+                    repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(args.pic_id)),
+                    repl.inlinekeyboardbutton('Download file', callback_data='file'),
+                    repl.inlinekeyboardbutton('Share', switch_inline_query=args.pic_id if not args.ppic else '{}_{}'.format(args.pic_id, args.ppic)),
+                    repl.inlinekeyboardbutton('🔽', callback_data='show {}'.format(params)) 
+                    if not args.show else repl.inlinekeyboardbutton('🔼', callback_data='hide {}'.format(params))
+                    ])
+        if args.show or not int(args.pic_id):
             reply_result.append([
                 repl.inlinekeyboardbutton('➖', callback_data='count_minus {}'.format(params)),
                   repl.inlinekeyboardbutton('{} ⬇️'.format(args.count), callback_data='similar {}'.format(params)),
@@ -417,8 +417,8 @@ class DPixiv:
     def change_default_settings(self, a, pix):
         reply_args = Parameters(pic_id='0',
                 count=pix.count, only_pics=pix.only_pics, by_one=pix.by_one)
-        a.msg('<b>Change default settings</b>\nPress ⬇️ to save', 
-            reply_markup=repl.inlinekeyboardmarkup(self.reply(reply_args, usual=False))).send()
+        a.msg('<b>Change default settings</b>\nPress ⬇️ to save', parse_mode='HTML',
+            reply_markup=repl.inlinekeyboardmarkup(self.reply(reply_args))).send()
 
     @is_logged
     def save_default_settings(self, a, pix):
