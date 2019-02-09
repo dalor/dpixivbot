@@ -168,13 +168,12 @@ def next_pic(a):
 def prev_pic(a):
     dpix.turn_right_or_left(a, -1)
 
-@b.callback_query('similar i0 ')
-def save_default_set(a):
-    dpix.save_default_settings(a)
-
 @b.callback_query('similar {}'.format(all_params))
 def call_sim(a):
-    dpix.send_similar(a)
+    if a.args[1] == '0':
+        dpix.save_default_settings(a)
+    else:
+        dpix.send_similar(a)
 
 @b.callback_query('file')
 def ffile(a):
