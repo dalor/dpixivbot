@@ -418,8 +418,8 @@ class DPixiv:
         reply_args = Parameters(pic_id='0',
                 count=pix.count, only_pics=pix.only_pics, by_one=pix.by_one)
         a.msg('<b>Change default settings</b>\nPress ⬇️ to save', 
-            reply_markup=repl.inlinekeyboardmarkup(self.reply(reply_args, usual=False)).send()
-            
+            reply_markup=repl.inlinekeyboardmarkup(self.reply(reply_args, usual=False))).send()
+
     @is_logged
     def save_default_settings(self, a, pix):
         args = self.parse_args(a)
