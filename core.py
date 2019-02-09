@@ -26,11 +26,12 @@ Share from PixivApp to bot
 /file <i>id</i> OR /file_<i>id</i> - Sending picture as document by ID
 /helpingif - Cool type of help
 /login - To connect your pixiv account and use next commands:
-/settings - Change <b>parameters</b> of sending pictures
+Reply /tag <i>new_tag</i> OR /t <i>new_tag</i> to add <i>new_tag</i> for picture if it possible
+/settings - Change <b>parameters</b> of sending pictures (works with <b>next</b> commands)
 /recommends - Get pictures similar to your bookmarks(depends on <b>parameters</b>)
 /following - Get new pictures from your following
-/following <i>page</i> OR /following_<i>page</i> - Get 20 pictures from page with your following feed
-/bookmarks
+/following <i>page</i> OR /following_<i>page</i> - Get 20 pictures from <i>page</i> from your following feed
+/bookmarks <i>page</i> OR /bookmarks_<i>page</i> - Get 20 pictures from <i>page</i> from your bookmarks
 \nFor inline enter:
 ID
 URL of picture from pixiv (in text also)
@@ -45,6 +46,8 @@ OR
 📂 - In group of 5 or less pictures
 OR
 📄 - By one with buttons of navigation
+
+Contact @dalor_dandy if error occurs
 \nHave a nice day :-)
 '''
 DATABASE = os.environ['DATABASE_URL']
@@ -104,6 +107,12 @@ def start(a):
     if not dpix.send_by_id(a):
         help_in_gif(a)
 
+@b.message('/t .+')
+@b.message('/tag .+')
+def add_tag(a):
+    dpix.add_tag(a)
+
+
 def reply_markup_for_gifhelp(id_=None):
     return [[repl.inlinekeyboardbutton(GIF_HELP[i]['name'], callback_data='help {}'.format(i))] for i in range(len(GIF_HELP)) if i != id_]
 
@@ -162,6 +171,10 @@ def next_pic(a):
 def prev_pic(a):
     dpix.turn_right_or_left(a, -1)
 
+@b.callback_query('similar 0 ')
+def save_default_set(a):
+    dpix.save_default_settings(a)
+
 @b.callback_query('similar {}'.format(all_params))
 def call_sim(a):
     dpix.send_similar(a)
@@ -169,23 +182,7 @@ def call_sim(a):
 @b.callback_query('file')
 def ffile(a):
     dpix.send_file_by_tag(a)
-    
-@b.callback_query('default_minus')
-def default_minus(a):
-    dpix.default_plus_or_minus(a, -1)
 
-@b.callback_query('default_plus')
-def default_plus(a):
-    dpix.default_plus_or_minus(a, 1)
-    
-@b.callback_query('default_opics')
-def default_opics(a):
-    dpix.default_only_pics(a)
-    
-@b.callback_query('default_group')
-def default_group(a):
-    dpix.default_by_one(a)
-    
 @b.callback_query('help ([0-9]+)')
 def spec_help(a):
     id_ = int(a.args[1])

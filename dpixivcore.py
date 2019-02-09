@@ -33,22 +33,23 @@ class DPixiv:
             show=int(args[8])
         )
         
-    def reply(self, args):
+    def reply(self, args, usual=True):
         reply_result = []
         params = args.format()
-        if args.mppic > 1:
+        if usual and args.mppic > 1:
             reply_result.append([
                 repl.inlinekeyboardbutton('◀️', callback_data='prev {}'.format(params)),
                 repl.inlinekeyboardbutton('▶️', callback_data='next {}'.format(params))
                 ])
-        reply_result.append([
-            repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(args.pic_id)),
-            repl.inlinekeyboardbutton('Download file', callback_data='file'),
-            repl.inlinekeyboardbutton('Share', switch_inline_query=args.pic_id if not args.ppic else '{}_{}'.format(args.pic_id, args.ppic)),
-            repl.inlinekeyboardbutton('🔽', callback_data='show {}'.format(params)) 
-            if not args.show else repl.inlinekeyboardbutton('🔼', callback_data='hide {}'.format(params))
-            ])
-        if args.show:
+        if usual:
+            reply_result.append([
+                repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(args.pic_id)),
+                repl.inlinekeyboardbutton('Download file', callback_data='file'),
+                repl.inlinekeyboardbutton('Share', switch_inline_query=args.pic_id if not args.ppic else '{}_{}'.format(args.pic_id, args.ppic)),
+                repl.inlinekeyboardbutton('🔽', callback_data='show {}'.format(params)) 
+                if not args.show else repl.inlinekeyboardbutton('🔼', callback_data='hide {}'.format(params))
+                ])
+        if args.show or not usual:
             reply_result.append([
                 repl.inlinekeyboardbutton('➖', callback_data='count_minus {}'.format(params)),
                   repl.inlinekeyboardbutton('{} ⬇️'.format(args.count), callback_data='similar {}'.format(params)),
@@ -369,7 +370,7 @@ class DPixiv:
                 if pix:
                     return old(self, a, pix, *args)
                 else:
-                    a.msg('Try to /login at first').send()
+                    b.msg('Try to /login at first', chat_id=chat_id).send()
         return new
     
     @is_logged
@@ -411,51 +412,30 @@ class DPixiv:
     def user_bookmarks(self, a, pix):
         bookmarks_ids = pix.bookmarks(a.args[1] if a.args[1] else 1)
         self.send_pack_by_one(bookmarks_ids, a.data['chat']['id'])
-    
-    def reply_for_default_settings(self, pix):
-        return [[
-            repl.inlinekeyboardbutton('➖', callback_data='default_minus'),
-            repl.inlinekeyboardbutton('{} ⬇️'.format(pix.count), callback_data='lol'),
-            repl.inlinekeyboardbutton('➕', callback_data='default_plus'),
-            repl.inlinekeyboardbutton('🖼' if pix.only_pics else '📰', callback_data='default_opics'),
-            repl.inlinekeyboardbutton('📄' if pix.by_one else '📂', callback_data='default_group')
-        ]]
-    
+
     @is_logged
     def change_default_settings(self, a, pix):
-        a.msg('Change default settings', 
-            reply_markup=repl.inlinekeyboardmarkup(self.reply_for_default_settings(pix))).send()
+        reply_args = Parameters(pic_id='0',
+                count=pix.count, only_pics=pix.only_pics, by_one=pix.by_one)
+        a.msg('<b>Change default settings</b>\nPress ⬇️ to save', 
+            reply_markup=repl.inlinekeyboardmarkup(self.reply(reply_args, usual=False)).send()
             
     @is_logged
-    def default_plus_or_minus(self, a, pix, turn):
-        count = pix.count - self.PACK_OF_SIMILAR_POSTS if turn < 0 else pix.count + self.PACK_OF_SIMILAR_POSTS
-        if count < self.PACK_OF_SIMILAR_POSTS or count > self.MAX_COUNT_POSTS:
-            a.answer(text='This is limit').send()
-        else:
-            pix.count = count
-            self.edit_reply_for_callback(a, self.reply_for_default_settings(pix))
-            a.answer(text='After {}{} >> {}'.format('-' if turn < 0 else '+', self.PACK_OF_SIMILAR_POSTS, count)).send()
+    def save_default_settings(self, a, pix):
+        args = self.parse_args(a)
+        pix.count = args.count
+        pix.only_pics = args.only_pics
+        pix.by_one = args.by_one
         self.db.save_user_settings(a.data['message']['chat']['id'])
-    
+        a.answer(text='Saved').send()
+
     @is_logged
-    def default_only_pics(self, a, pix):
-        if pix.only_pics:
-            pix.only_pics = 0
-            a.answer(text='Will send without any description').send()
-        else:
-            pix.only_pics = 1
-            a.answer(text='Will send with title and text').send()
-        self.db.save_user_settings(a.data['message']['chat']['id'])
-        self.edit_reply_for_callback(a, self.reply_for_default_settings(pix))
-    
-    @is_logged
-    def default_by_one(self, a, pix):
-        if pix.by_one:
-            pix.by_one = 0
-            a.answer(text='Will send in group').send()
-        else:
-            pix.by_one = 1
-            a.answer(text='Will send by one').send()
-        self.db.save_user_settings(a.data['message']['chat']['id'])
-        self.edit_reply_for_callback(a, self.reply_for_default_settings(pix))
+    def add_tag(self, a, pix):
+        pixiv_id = self.find_pixiv_id_in_mess(a.data['reply_to_message'])
+        if pixiv_id:
+            if pix.add_tag(pixiv_id, a.args[1]):
+                text = 'Success'
+            else:
+                text = 'Fail'
+            a.msg(text).send()
     
