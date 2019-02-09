@@ -433,6 +433,7 @@ class DPixiv:
     def add_tag(self, a, pix):
         pixiv_id = self.find_pixiv_id_in_mess(a.data['reply_to_message'])
         if pixiv_id:
+            pixiv_id = pixiv_id[1]
             pic_info = pix.info(pixiv_id, token=True)
             if pic_info:
                 if pix.add_tag(pixiv_id, a.args[1], pic_info[pixiv_id]['token']):
