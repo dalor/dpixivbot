@@ -36,7 +36,7 @@ class DPixiv:
     def reply(self, args):
         reply_result = []
         params = args.format()
-        if int(args.pic_id):
+        if args.pic_id != '0':
             if args.mppic > 1:
                 reply_result.append([
                     repl.inlinekeyboardbutton('◀️', callback_data='prev {}'.format(params)),
@@ -49,7 +49,7 @@ class DPixiv:
                     repl.inlinekeyboardbutton('🔽', callback_data='show {}'.format(params)) 
                     if not args.show else repl.inlinekeyboardbutton('🔼', callback_data='hide {}'.format(params))
                     ])
-        if args.show or not int(args.pic_id):
+        if args.show or args.pic_id == '0':
             reply_result.append([
                 repl.inlinekeyboardbutton('➖', callback_data='count_minus {}'.format(params)),
                   repl.inlinekeyboardbutton('{} ⬇️'.format(args.count), callback_data='similar {}'.format(params)),
