@@ -433,9 +433,11 @@ class DPixiv:
     def add_tag(self, a, pix):
         pixiv_id = self.find_pixiv_id_in_mess(a.data['reply_to_message'])
         if pixiv_id:
-            if pix.add_tag(pixiv_id, a.args[1]):
-                text = 'Success'
-            else:
-                text = 'Fail'
-            a.msg(text).send()
+            pic_info = pix.info(pixiv_id, token=True)
+            if pic_info:
+                if pix.add_tag(pixiv_id, a.args[1], pic_info[pixiv_id]['token']):
+                    text = 'Success'
+                else:
+                    text = 'Fail'
+                a.msg(text).send()
     
