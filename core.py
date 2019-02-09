@@ -67,11 +67,8 @@ pix = User(PIX_LOGIN, PIX_PASSWORD, PIX_SESSION)
 dpix = DPixiv(b, pix, DATABASE, BOTNAME, PACK_OF_SIMILAR_POSTS, MAX_COUNT_POSTS)
 
 @b.inline_query('([0-9]+)_?([0-9]*)')
-def picture_id__(a):
-    dpix.answer_inline_picture(a)
-
 @b.inline_query('https\:\/\/www\.pixiv\.net\/member\_illust\.php\?.*illust\_id\=([0-9]+)()')
-def picture_id_url__(a):
+def picture_id__(a):
     dpix.answer_inline_picture(a)
 
 @b.channel_post('/?pic[ _]?([0-9]+)_?([0-9]*)')
@@ -107,8 +104,8 @@ def start(a):
     if not dpix.send_by_id(a):
         help_in_gif(a)
 
-@b.message('/t .+')
-@b.message('/tag .+')
+@b.message('/t (.+)')
+@b.message('/tag (.+)')
 def add_tag(a):
     dpix.add_tag(a)
 
