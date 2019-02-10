@@ -42,13 +42,13 @@ class DPixiv:
                     repl.inlinekeyboardbutton('◀️', callback_data='prev {}'.format(params)),
                     repl.inlinekeyboardbutton('▶️', callback_data='next {}'.format(params))
                     ])
-                reply_result.append([
-                    repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(args.pic_id)),
-                    repl.inlinekeyboardbutton('Download file', callback_data='file'),
-                    repl.inlinekeyboardbutton('Share', switch_inline_query=args.pic_id if not args.ppic else '{}_{}'.format(args.pic_id, args.ppic)),
-                    repl.inlinekeyboardbutton('🔽', callback_data='show {}'.format(params)) 
-                    if not args.show else repl.inlinekeyboardbutton('🔼', callback_data='hide {}'.format(params))
-                    ])
+            reply_result.append([
+                repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(args.pic_id)),
+                repl.inlinekeyboardbutton('Download file', callback_data='file'),
+                repl.inlinekeyboardbutton('Share', switch_inline_query=args.pic_id if not args.ppic else '{}_{}'.format(args.pic_id, args.ppic)),
+                repl.inlinekeyboardbutton('🔽', callback_data='show {}'.format(params)) 
+                if not args.show else repl.inlinekeyboardbutton('🔼', callback_data='hide {}'.format(params))
+                ])
         if args.show or args.pic_id == '0':
             reply_result.append([
                 repl.inlinekeyboardbutton('➖', callback_data='count_minus {}'.format(params)),
