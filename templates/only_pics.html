@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+    <meta charset="utf-8">
+    <style>
+        body {
+            max-width: 1024px;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        img {
+            max-width: 80%;
+            margin-left: 10%;
+        }
+    </style>
+</head>
+<body>
+{% for url in list %}
+    <img src="{{ url }}">
+{% endfor %}
+</body>
+</html>

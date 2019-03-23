@@ -1,11 +1,13 @@
-from flask import Flask, request, render_template, redirect
+from flask import Flask, request, render_template, redirect, jsonify, send_file
 from dtelbot import Bot, inputmedia as inmed, reply_markup as repl, inlinequeryresult as iqr
 from arguments import default_arguments as all_params
 from user import User
 import re
 import os
 import json
-from dpixivcore import DPixiv
+from dpixivcore import DPixiv, check_pixiv_id
+import requests
+from io import BytesIO
 
 BOT_ID = os.environ['BOT_ID']
 PIX_LOGIN = os.environ['PIX_LOGIN']
@@ -25,6 +27,7 @@ Share from PixivApp to bot
 \n<b>Other:</b>
 /file <i>id</i> OR /file_<i>id</i> - Sending picture as document by ID
 /helpingif - Cool type of help
+Reply /instant to get Instant View
 /login - To connect your pixiv account and use next commands:
 Reply /tag <i>new_tag</i> OR /t <i>new_tag</i> to add <i>new_tag</i> for picture if it possible
 /settings - Change <b>parameters</b> of sending pictures (works with <b>next</b> commands)
@@ -64,7 +67,7 @@ app = Flask(__name__)
 b = Bot(BOT_ID)
 pix = User(PIX_LOGIN, PIX_PASSWORD, PIX_SESSION)
 
-dpix = DPixiv(b, pix, DATABASE, BOTNAME, PACK_OF_SIMILAR_POSTS, MAX_COUNT_POSTS)
+dpix = DPixiv(b, pix, DATABASE, BOTNAME, PACK_OF_SIMILAR_POSTS, MAX_COUNT_POSTS, LOGIN_URL)
 
 @b.inline_query('([0-9]+)_?([0-9]*)')
 @b.inline_query('https\:\/\/www\.pixiv\.net\/member\_illust\.php\?.*illust\_id\=([0-9]+)()')
@@ -109,6 +112,13 @@ def start(a):
 def add_tag(a):
     dpix.add_tag(a)
 
+@b.message('/instant')
+def inst_view(a):
+    repl_mess = a.data.get('reply_to_message')
+    if repl_mess:
+        pixiv_id = self.find_pixiv_id_in_mess(repl_mess)
+        if pixiv_id:
+            a.msg('<a href=\"https://t.me/iv?rhash=78f84f2a5ad4db&url={}pic/{}\">View</a>'.format(LOGIN_URL, pixiv_id), parse_mode='HTML').send()
 
 def reply_markup_for_gifhelp(id_=None):
     return [[repl.inlinekeyboardbutton(GIF_HELP[i]['name'], callback_data='help {}'.format(i))] for i in range(len(GIF_HELP)) if i != id_]
@@ -214,6 +224,56 @@ def logn_form():
 def webhook():
     b.check(request.get_json())
     return 'ok', 200
+
+def render_pics(ids, title):
+    pics = [tuple(pic.values())[0] for pic in pix.info_packs(ids)]
+    return render_template('pic_list.html', title=title, list=pics)
+     
+@app.route('/fix')
+def fix_url():
+    url = request.args.get('url')
+    if url:
+        res = check_pixiv_id.match(url)
+        if res:
+            picture = requests.get(url, headers={'Referer': 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(res[1])})
+            return send_file(BytesIO(picture.content), mimetype=picture.headers['Content-Type'], attachment_filename='{}_p{}'.format(res[1], res[2]))
+    return 'null'
+
+@app.route('/info/<id>')
+def info_pic(id):
+    return jsonify(pix.info(id))
+
+@app.route('/pic/<id>')
+def get_pic(id):
+    pic = pix.info(id)
+    if pic:
+        pic = pic[id]
+        url = pic['urls']['original']
+        if pic['pageCount']:
+            urls = [dpix.change_url_page(url, i) for i in range(pic['pageCount'])]
+        else: urls = [url]
+        return render_template('only_pics.html', title='Load...', list=urls)
+    else:
+        return 'null'
+        
+@app.route('/pics/<ids>')
+def load_group(ids):
+    return render_pics(ids.split(','), 'Pictures')
+
+@app.route('/similar/<id>')
+def load_similar(id):
+    COUNT = 20
+    p = request.args.get('p')
+    if p and int(p) > 0:
+        count = COUNT * int(p)
+    else:
+        count = COUNT
+    ids = pix.similar(id, count)
+    if ids and count - COUNT < len(ids):
+        ids = ids[count - COUNT:]
+        return render_pics(ids, 'Similar')
+    else:
+        return 'null'
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))

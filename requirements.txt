@@ -1,3 +1,4 @@
 Flask
 aiohttp
 psycopg2-binary
+requests

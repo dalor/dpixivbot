@@ -8,16 +8,18 @@ import json
 from uuid import uuid4 as random_token
 
 change_url_page_pattern = re.compile('\_p[0-9]+')
-check_pixiv_id = re.compile('https\:\/\/i\.pximg\.net.+\/([0-9]+)_p([0-9]+)\.')
+check_pixiv_id = re.compile('.*https\:\/\/i\.pximg\.net.+\/([0-9]+)_p([0-9]+)\.')
+get_clear_pic_url = re.compile('.*(https\:\/\/i\.pximg\.net.+)')
 parse_saucenao = re.compile('pixiv\.net\/member\_illust\.php\?mode\=medium\&illust\_id\=([0-9]+)')
 
 class DPixiv:
-    def __init__(self, dbot, dpixiv, DATABASE_URL, BOTNAME, PACK_OF_SIMILAR_POSTS, MAX_COUNT_POSTS):
+    def __init__(self, dbot, dpixiv, DATABASE_URL, BOTNAME, PACK_OF_SIMILAR_POSTS, MAX_COUNT_POSTS, SITE_URL):
         self.b = dbot
         self.db = Database(DATABASE_URL, dpixiv)
         self.BOTNAME = BOTNAME
         self.PACK_OF_SIMILAR_POSTS = PACK_OF_SIMILAR_POSTS
         self.MAX_COUNT_POSTS = MAX_COUNT_POSTS
+        self.SITE_URL = SITE_URL
         self.tokens = {}
     
     def parse_args(self, a):
@@ -73,7 +75,7 @@ class DPixiv:
         if ppic and ppic < pic['pageCount']:
             url = self.change_url_page(url, ppic)
             thumbnail = self.change_url_page(thumbnail, ppic)
-        description = '<a href=\"{}\">{}</a>\n<b>Tags:</b> {}'.format(url, pic['title'], self.pixiv_tags(pic))
+        description = '<a href=\"{}fix?url={}\">{}</a>\n<b>Tags:</b> {}'.format(self.SITE_URL, url, pic['title'], self.pixiv_tags(pic))
         return {'url': url, 'caption': description, 'thumbnail': thumbnail}
         
     def change_url_page(self, old_url, new_page):
@@ -266,8 +268,9 @@ class DPixiv:
             npic = mppic - 1
         if not entities or not text:
             return 'Nothing'
-        pic_url = self.change_url_page(entities[0]['url'], npic)
-        entities[0]['url'] = pic_url
+        temp_pic_url = self.change_url_page(entities[0]['url'], npic)
+        entities[0]['url'] = temp_pic_url
+        pic_url = get_clear_pic_url.match(temp_pic_url)[1]
         caption = self.return_format_to_text(text, entities)
         args.ppic = npic
         reply_markup = repl.inlinekeyboardmarkup(self.reply(args))
