@@ -180,7 +180,8 @@ class DPixiv:
         pic_url = self.get_first_url(a.data['message'])
         if pic_url:
             a.answer(text='Sending...').send()
-            self.b.document(pic_url, chat_id=a.data['message']['chat']['id'], reply_to_message_id=a.data['message']['message_id']).send()
+            clear_url = get_clear_pic_url.match(pic_url)
+            self.b.document(clear_url[1] if clear_url else pic_url, chat_id=a.data['message']['chat']['id'], reply_to_message_id=a.data['message']['message_id']).send()
         else:
             a.answer(text='Wrong url').send()
     
