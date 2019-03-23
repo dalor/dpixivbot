@@ -116,7 +116,7 @@ def add_tag(a):
 def inst_view(a):
     repl_mess = a.data.get('reply_to_message')
     if repl_mess:
-        pixiv_id = self.find_pixiv_id_in_mess(repl_mess)
+        pixiv_id = dpix.find_pixiv_id_in_mess(repl_mess)
         if pixiv_id:
             a.msg('<a href=\"https://t.me/iv?rhash=78f84f2a5ad4db&url={}pic/{}\">View</a>'.format(LOGIN_URL, pixiv_id), parse_mode='HTML').send()
 
