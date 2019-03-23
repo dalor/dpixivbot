@@ -118,7 +118,7 @@ def inst_view(a):
     if repl_mess:
         pixiv_id = dpix.find_pixiv_id_in_mess(repl_mess)
         if pixiv_id:
-            a.msg('<a href=\"https://t.me/iv?rhash=78f84f2a5ad4db&url={}pic/{}\">View</a>'.format(LOGIN_URL, pixiv_id[1]), parse_mode='HTML').send()
+            a.msg('<a href=\"https://t.me/iv?rhash=d78b7da75fefb6&url={}pic/{}\">View</a>'.format(LOGIN_URL, pixiv_id[1]), parse_mode='HTML').send()
 
 def reply_markup_for_gifhelp(id_=None):
     return [[repl.inlinekeyboardbutton(GIF_HELP[i]['name'], callback_data='help {}'.format(i))] for i in range(len(GIF_HELP)) if i != id_]
