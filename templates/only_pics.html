@@ -20,5 +20,11 @@
 {% for url in list %}
     <img src="{{ url }}">
 {% endfor %}
+<script>
+    var pics = document.getElementsByTagName("img");
+    for (var i = 0; i < pics.length; i++) {
+        pics[i].src = '/fix?url=' + pics[i].src;
+    } 
+</script>
 </body>
 </html>

@@ -21,5 +21,11 @@
     <img src="{{ pic['urls']['original'] }}">
     <center><a href="http://t.me/dpixivbot?start={{ pic['id'] }}">{{ pic['title'] }}</a></center>
 {% endfor %}
+<script>
+    var pics = document.getElementsByTagName("img");
+    for (var i = 0; i < pics.length; i++) {
+        pics[i].src = '/fix?url=' + pics[i].src;
+    } 
+</script>
 </body>
 </html>
