@@ -373,7 +373,7 @@ class DPixiv:
                 if pix:
                     return old(self, a, pix, *args)
                 else:
-                    b.msg('Try to /login at first', chat_id=chat_id).send()
+                    self.b.msg('Try to /login at first', chat_id=chat_id).send()
         return new
     
     @is_logged
