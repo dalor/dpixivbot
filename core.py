@@ -279,7 +279,7 @@ check_pixiv_url = re.compile('.+(pixiv|pximg)\.net.+\/([0-9]+|([0-9]+)_p([0-9]+)
 
 @app.route('/danbooru')
 def danbooru():
-    pics = requests.get('https://danbooru.donmai.us/posts.json', args=dict(request.args)).json()
+    pics = requests.get('https://danbooru.donmai.us/posts.json', params=request.args).json()
     pictures = []
     for pic in pics:
         check = check_pixiv_url.match(pic['source'])
