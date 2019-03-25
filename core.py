@@ -220,7 +220,7 @@ def logn_form():
     else:
         return redirect('/')
 
-@app.route('/this_is_hook', methods=['POST']) #Telegram should be connected to this hook
+@app.route('/{}'.format(BOT_ID), methods=['POST']) #Telegram should be connected to this hook
 def webhook():
     b.check(request.get_json())
     return 'ok', 200
@@ -274,6 +274,24 @@ def load_similar(id):
         return render_pics(ids, 'Similar')
     else:
         return 'null'
+
+check_pixiv_url = re.compile('.+(pixiv|pximg)\.net.+\/([0-9]+|([0-9]+)_p([0-9]+))\.')
+
+@app.route('/danbooru')
+def danbooru():
+    pics = requests.get('https://danbooru.donmai.us/posts.json', args=dict(request.args)).json()
+    pictures = []
+    for pic in pics:
+        check = check_pixiv_url.match(pic['source'])
+        if check:
+            if check[3]:
+                url = 'https://t.me/dpixivbot?start={}_{}'.format(check[3], check[4])
+            else:
+                url = 'https://t.me/dpixivbot?start={}'.format(check[2])
+        else:
+            url = pic['source']
+        pictures.append({'url': url, 'file_url': pic['file_url']})
+    return render_template('danbooru_pics.html', list=pictures, title='danbooru')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
