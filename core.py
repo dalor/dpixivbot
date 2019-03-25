@@ -275,7 +275,7 @@ def load_similar(id):
     else:
         return 'null'
 
-check_pixiv_url = re.compile('.+(pixiv|pximg)\.net.+\/([0-9]+|([0-9]+)_p([0-9]+))\.')
+check_pixiv_url = re.compile('.+(pixiv|pximg)\.net.+\/([0-9]+|([0-9]+)(_[a-z]+|)_p([0-9]+))\.')
 
 @app.route('/danbooru')
 def danbooru():
@@ -285,12 +285,16 @@ def danbooru():
         check = check_pixiv_url.match(pic['source'])
         if check:
             if check[3]:
-                url = 'https://t.me/dpixivbot?start={}_{}'.format(check[3], check[4])
+                url = 'https://t.me/dpixivbot?start={}_{}'.format(check[3], check[5])
             else:
                 url = 'https://t.me/dpixivbot?start={}'.format(check[2])
         else:
             url = pic['source']
-        pictures.append({'url': url, 'file_url': pic['file_url']})
+        file_url = pic.get('file_url')
+        if not file_url:
+            file_url = pic.get('large_file_url')
+        if file_url:
+            pictures.append({'url': url, 'file_url': file_url})
     return render_template('danbooru_pics.html', list=pictures, title='danbooru')
 
 if __name__ == '__main__':
