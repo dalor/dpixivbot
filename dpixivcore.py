@@ -135,7 +135,7 @@ class DPixiv:
         if not self.send_by_id(a) and 'reply_to_message' in a.data and 'photo' in a.data['reply_to_message'] and not self.send_by_tag(a.data['reply_to_message']):
             find = self.saucenao_search(a.data['reply_to_message']['photo'][-1]['file_id'])
             if not (find and self.send_picture(find, a.data['chat']['id'])):
-                a.msg('Can`t find such picture').send()
+                a.msg('Can`t find 😬', reply_to_message_id=a.data['reply_to_message']['message_id']).send()
     
     def get_first_url(self, mess):
         first = None
@@ -162,8 +162,8 @@ class DPixiv:
             pix = self.get_pix(a.data['chat']['id'])
             if pix and 'photo' in a.data:
                 find = self.saucenao_search(a.data['photo'][-1]['file_id'])
-                if find:
-                    self.send_picture(find, a.data['chat']['id'], pix=pix)
+                if not (find and self.send_picture(find, a.data['chat']['id'], pix=pix)):
+                    a.msg('😬').send()
 
     def send_to_channel(self, a, by_tag=False):
         pixiv_id = self.find_pixiv_id_in_mess(a.data) if by_tag else a.args
