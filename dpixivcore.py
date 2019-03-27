@@ -124,7 +124,8 @@ class DPixiv:
         pic_url = self.b.fileurl(picture_id)
         data = {'url': pic_url, 'frame': 1, 'hide': 0, 'database': 5}
         page = Tools().post('http://saucenao.com/search.php', data=data)
-        return parse_saucenao.search(page)
+        find = parse_saucenao.search(page)
+        return find[1] if find else None
     
     def send_by_id(self, a):
         if a.args[1]:
@@ -133,7 +134,7 @@ class DPixiv:
     def pic_command(self, a):
         if not self.send_by_id(a) and 'reply_to_message' in a.data and 'photo' in a.data['reply_to_message'] and not self.send_by_tag(a.data['reply_to_message']):
             find = self.saucenao_search(a.data['reply_to_message']['photo'][-1]['file_id'])
-            if not (find and self.send_picture(find[1], a.data['chat']['id'])):
+            if not (find and self.send_picture(find, a.data['chat']['id'])):
                 a.msg('Can`t find such picture').send()
     
     def get_first_url(self, mess):
@@ -156,6 +157,14 @@ class DPixiv:
             self.send_picture(pixiv_id[1], mess['chat']['id'], ppic=int(pixiv_id[2]))
             return True
     
+    def send_by_pic(self, a):
+        if not self.send_by_tag(a.data):
+            pix = self.get_pix(a.data['chat']['id'])
+            if pix and 'photo' in a.data:
+                find = self.saucenao_search(a.data['photo'][-1]['file_id'])
+                if find:
+                    self.send_picture(find, a.data['chat']['id'], pix=pix)
+
     def send_to_channel(self, a, by_tag=False):
         pixiv_id = self.find_pixiv_id_in_mess(a.data) if by_tag else a.args
         if pixiv_id:

@@ -202,7 +202,7 @@ def spec_help(a):
 
 @b.message(True)
 def check_tag_in_mess(a):
-    dpix.send_by_tag(a.data)
+    dpix.send_by_pic(a)
 
 @b.channel_post(True)
 def check_tag_in_post(a):
