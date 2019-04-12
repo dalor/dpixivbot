@@ -239,6 +239,20 @@ def fix_url():
             return send_file(BytesIO(picture.content), mimetype=picture.headers['Content-Type'], attachment_filename='{}_p{}'.format(res[1], res[2]))
     return 'null'
 
+@app.route('/load/<id>')
+def load_pic(id):
+    pic = pix.info(id)
+    if pic:
+        pic = pic[id]
+        p = request.args.get('p')
+        url = pic['urls'].get(request.args.get('quality'))
+        if not url:
+            url = pic['urls']['original']
+        if p:
+            url = dpix.change_url_page(url, p)
+        return redirect('/fix?url={}'.format(url))
+    else: return 'null' 
+
 @app.route('/info/<id>')
 def info_pic(id):
     return jsonify(pix.info(id))
@@ -286,14 +300,10 @@ def danbooru():
         if check:
             if check[3]:
                 url = 'https://t.me/dpixivbot?start={}_{}'.format(check[3], check[5])
+                file_url = '/load/{}?p={}'.format(check[3], check[5])
             else:
                 url = 'https://t.me/dpixivbot?start={}'.format(check[2])
-        else:
-            url = pic['source']
-        file_url = pic.get('file_url')
-        if not file_url:
-            file_url = pic.get('large_file_url')
-        if file_url:
+                file_url = '/load/{}'.format(check[2])
             pictures.append({'url': url, 'file_url': file_url})
     return render_template('danbooru_pics.html', list=pictures, title='danbooru')
 
