@@ -1,4 +1,7 @@
-from dtelbot import Bot, inputmedia as inmed, reply_markup as repl, inlinequeryresult as iqr
+from dtelbot import Bot
+from dtelbot.inline import photo as iphoto, article as iarticle
+from dtelbot.inline_keyboard import markup, button
+from dtelbot.input_media import photo as imphoto
 from user import User
 from arguments import Parameters
 from tools import Tools
@@ -41,32 +44,39 @@ class DPixiv:
         if args.pic_id != '0':
             if args.mppic > 1:
                 reply_result.append([
-                    repl.inlinekeyboardbutton('◀️', callback_data='prev {}'.format(params)),
-                    repl.inlinekeyboardbutton('▶️', callback_data='next {}'.format(params))
+                    button('◀️', callback_data='prev {}'.format(params)),
+                    button('▶️', callback_data='next {}'.format(params))
                     ])
             reply_result.append([
-                repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(args.pic_id)),
-                repl.inlinekeyboardbutton('Download file', callback_data='file'),
-                repl.inlinekeyboardbutton('Share', switch_inline_query=args.pic_id if not args.ppic else '{}_{}'.format(args.pic_id, args.ppic)),
-                repl.inlinekeyboardbutton('🔽', callback_data='show {}'.format(params)) 
-                if not args.show else repl.inlinekeyboardbutton('🔼', callback_data='hide {}'.format(params))
+                button('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(args.pic_id)),
+                button('Download file', callback_data='file'),
+                button('Share', switch_inline_query=args.pic_id if not args.ppic else '{}_{}'.format(args.pic_id, args.ppic)),
+                button('🔽', callback_data='show {}'.format(params)) 
+                if not args.show else button('🔼', callback_data='hide {}'.format(params))
                 ])
         if args.show or args.pic_id == '0':
             reply_result.append([
-                repl.inlinekeyboardbutton('➖', callback_data='count_minus {}'.format(params)),
-                  repl.inlinekeyboardbutton('{} ⬇️'.format(args.count), callback_data='similar {}'.format(params)),
-                  repl.inlinekeyboardbutton('➕', callback_data='count_plus {}'.format(params)),
-                  repl.inlinekeyboardbutton('🖼' if args.only_pics else '📰', callback_data='opics {}'.format(params)),
-                  repl.inlinekeyboardbutton('📄' if args.by_one else '📂', callback_data='group {}'.format(params))
+                button('➖', callback_data='count_minus {}'.format(params)),
+                  button('{} ⬇️'.format(args.count), callback_data='similar {}'.format(params)),
+                  button('➕', callback_data='count_plus {}'.format(params)),
+                  button('🖼' if args.only_pics else '📰', callback_data='opics {}'.format(params)),
+                  button('📄' if args.by_one else '📂', callback_data='group {}'.format(params))
                   ])
         return reply_result
     
     def shared_reply(self, pic_id, ppic=0):
         new_pic_id = pic_id if not ppic else '{}_{}'.format(pic_id, ppic)
         return [[
-            repl.inlinekeyboardbutton('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(pic_id)),
-            repl.inlinekeyboardbutton('More', url='t.me/{}?start={}'.format(self.BOTNAME, new_pic_id)),
-            repl.inlinekeyboardbutton('Share', switch_inline_query=new_pic_id)
+            button('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(pic_id)),
+            button('More', url='t.me/{}?start={}'.format(self.BOTNAME, new_pic_id)),
+            button('Share', switch_inline_query=new_pic_id)
+            ]]
+
+    def channel_reply(self, pic_id, ppic=0):
+        new_pic_id = pic_id if not ppic else '{}_{}'.format(pic_id, ppic)
+        return [[
+            button('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(pic_id)),
+            button('More', url='t.me/{}?start={}'.format(self.BOTNAME, new_pic_id))
             ]]
     
     def prepare_picture(self, pic, ppic=0):
@@ -93,12 +103,11 @@ class DPixiv:
         pix = self.get_pix(chat_id) if not pix else pix
         pic_info = pix.info(pic_id)
         if pic_info:
-            pic_info = pic_info[pic_id]
             reply_args = Parameters(pic_id=pic_id, mppic=pic_info['pageCount'],
                 ppic=ppic if ppic < pic_info['pageCount'] and ppic > 0 else 0,
                 count=pix.count, only_pics=pix.only_pics, by_one=pix.by_one)
             pic = self.prepare_picture(pic_info, reply_args.ppic)
-            reply_markup = repl.inlinekeyboardmarkup(self.reply(reply_args)) if is_desc else ''
+            reply_markup = markup(self.reply(reply_args)) if is_desc else ''
             result = self.b.photo(pic['url'], chat_id=chat_id, caption=pic['caption'] if is_desc else '', parse_mode='HTML',
                 reply_to_message_id=reply_to_message_id if reply_to_message_id else '', reply_markup=reply_markup).send()
             if not result['ok'] and is_desc:
@@ -107,18 +116,17 @@ class DPixiv:
             return True
     
     def answer_inline_picture(self, a):
-        pix_info = self.get_pix(a.data['from']['id']).info(a.args[1])
-        if pix_info:
-            pic_info = pix_info[a.args[1]]
+        pic_info = self.get_pix(a.data['from']['id']).info(a.args[1])
+        if pic_info:
             ppic = int(a.args[2]) if a.args[2] else 0
             pic = self.prepare_picture(pic_info, ppic)
             reply_markup = {'inline_keyboard': self.shared_reply(a.args[1], ppic)}
             a.answer([
-                iqr(type='photo', id=0, photo_url=pic['url'], thumb_url=pic['thumbnail'],
+                iphoto(id=0, photo_url=pic['url'], thumb_url=pic['thumbnail'],
                     reply_markup=reply_markup, description='Without description'),
-                iqr(type='photo', id=2, photo_url=pic['url'], caption=pic['caption'], parse_mode='HTML', thumb_url=pic['thumbnail'],
+                iphoto(id=2, photo_url=pic['url'], caption=pic['caption'], parse_mode='HTML', thumb_url=pic['thumbnail'],
                     reply_markup=reply_markup, description='With description'),
-                iqr(type='article', id=1, title=pic_info['title'], input_message_content={'message_text': pic['caption'], 'parse_mode': 'HTML'},
+                iarticle(id=1, title=pic_info['title'], input_message_content={'message_text': pic['caption'], 'parse_mode': 'HTML'},
                     reply_markup=reply_markup, thumb_url=pic['thumbnail'])
                 ]).send()
     
@@ -137,7 +145,7 @@ class DPixiv:
         if not self.send_by_id(a) and 'reply_to_message' in a.data and 'photo' in a.data['reply_to_message'] and not self.send_by_tag(a.data['reply_to_message']):
             find = self.saucenao_search(a.data['reply_to_message']['photo'][-1]['file_id'])
             if not (find and self.send_picture(find, a.data['chat']['id'])):
-                a.msg('😬', reply_to_message_id=a.data['reply_to_message']['message_id']).send()
+                a.msg('¯\_(ツ)_/¯', reply_to_message_id=a.data['reply_to_message']['message_id']).send()
     
     def get_first_url(self, mess):
         first = None
@@ -165,20 +173,20 @@ class DPixiv:
             if pix and 'photo' in a.data:
                 find = self.saucenao_search(a.data['photo'][-1]['file_id'])
                 if not (find and self.send_picture(find, a.data['chat']['id'], pix=pix)):
-                    a.msg('😬', reply_to_message_id=a.data['message_id']).send()
+                    a.msg('¯\_(ツ)_/¯', reply_to_message_id=a.data['message_id']).send()
 
     def send_to_channel(self, a, by_tag=False):
         pixiv_id = self.find_pixiv_id_in_mess(a.data) if by_tag else a.args
         if pixiv_id:
-            picture = self.get_pix(None).info(pixiv_id[1])[pixiv_id[1]]
+            picture = self.get_pix(None).info(pixiv_id[1])
             ppic = int(pixiv_id[2]) if pixiv_id[2] else 0
             pic = self.prepare_picture(picture, ppic)
-            reply = self.shared_reply(pixiv_id[1], ppic)
-            a.photo(pic['url'], reply_markup=repl.inlinekeyboardmarkup(self.shared_reply(pixiv_id[1], ppic))).send()
-            a.delete().send()
+            self.b.more([
+                a.photo(pic['url'], reply_markup=markup(self.channel_reply(pixiv_id[1], ppic))),
+                a.delete()])
     
     def send_file_by_id(self, a):
-        pic_info = self.get_pix(a.data['chat']['id']).info(a.args[1])[a.args[1]]
+        pic_info = self.get_pix(a.data['chat']['id']).info(a.args[1])
         if pic_info:
             pic_url = pic_info['urls']['original']
             if a.args[2] and int(a.args[2]) < pic_info['pageCount']:
@@ -199,7 +207,7 @@ class DPixiv:
     def edit_reply_for_callback(self, a, reply):
         self.b.editreplymarkup(chat_id=a.data['message']['chat']['id'],
             message_id=a.data['message']['message_id'],
-            reply_markup=repl.inlinekeyboardmarkup(reply)).send()
+            reply_markup=markup(reply)).send()
     
     def edit_reply(self, a, args):
         self.edit_reply_for_callback(a, self.reply(args))
@@ -283,12 +291,12 @@ class DPixiv:
         temp_pic_url = self.change_url_page(entities[0]['url'], npic)
         entities[0]['url'] = temp_pic_url
         caption = self.return_format_to_text(text, entities)
-        pic_url = get_clear_pic_url.match(temp_pic_url)[1].replace('_p{}'.format(npic), '_p{}_master1200'.format(npic)).replace('img-original', 'img-master')
+        pic_url = get_clear_pic_url.match(temp_pic_url)[1].replace('_p{}'.format(npic), '_p{}_master1200'.format(npic)).replace('img-original', 'img-master').replace('.png', '.jpg')
         args.ppic = npic
-        reply_markup = repl.inlinekeyboardmarkup(self.reply(args))
+        reply_markup = markup(self.reply(args))
         if is_photo:
             result = self.b.editmedia(
-                json.dumps(inmed.photo(pic_url, caption=caption, parse_mode='HTML')),
+                imphoto(pic_url, caption=caption, parse_mode='HTML'),
                 chat_id=a.data['message']['chat']['id'],
                 message_id=a.data['message']['message_id'],
                 reply_markup=reply_markup).send()
@@ -320,9 +328,8 @@ class DPixiv:
             all_info = pix.info_packs(pack)
             all_media = []
             for one in all_info:
-                key, value = list(one.items())[0]
-                pic = self.prepare_picture(value)
-                all_media.append(inmed.photo(pic['url'], caption=pic['caption'] if is_desc else '', parse_mode='HTML'))
+                pic = self.prepare_picture(one)
+                all_media.append(imphoto(pic['url'], caption=pic['caption'] if is_desc else '', parse_mode='HTML'))
             result = self.b.media(all_media, chat_id=chat_id,
                 reply_to_message_id=reply_to_message_id if reply_to_message_id else '').send()
             if not result['ok']:
@@ -416,7 +423,7 @@ class DPixiv:
             self.db.save_user_settings(a.data['chat']['id'])
             self.send_pictures(follow_ids, a.data['chat']['id'], pix=pix)
         else:
-            a.msg('Can`t find new works 😐').send()
+            a.msg('¯\_(ツ)_/¯').send()
     
     @is_logged
     def user_recommender(self, a, pix):
@@ -433,7 +440,7 @@ class DPixiv:
         reply_args = Parameters(pic_id='0',
                 count=pix.count, only_pics=pix.only_pics, by_one=pix.by_one)
         a.msg('<b>Change default settings</b>\nPress ⬇️ to save', parse_mode='HTML',
-            reply_markup=repl.inlinekeyboardmarkup(self.reply(reply_args))).send()
+            reply_markup=markup(self.reply(reply_args))).send()
 
     @is_logged
     def save_default_settings(self, a, pix):

@@ -1,5 +1,8 @@
 from flask import Flask, request, render_template, redirect, jsonify, send_file
-from dtelbot import Bot, inputmedia as inmed, reply_markup as repl, inlinequeryresult as iqr
+from dtelbot import Bot
+from dtelbot.inline import photo as iphoto, article as iarticle
+from dtelbot.inline_keyboard import markup, button
+from dtelbot.input_media import photo as imphoto, animation as imanimation
 from arguments import default_arguments as all_params
 from user import User
 import re
@@ -17,6 +20,8 @@ PACK_OF_SIMILAR_POSTS = int(os.environ['PACK_OF_SIMILAR_POSTS'])
 MAX_COUNT_POSTS = int(os.environ['MAX_COUNT_POSTS'])
 BOTNAME = os.environ['BOTNAME']
 LOGIN_URL = os.environ['LOGIN_URL']
+DATABASE = os.environ['DATABASE_URL']
+
 INFO_TEXT = '''
 <b>You can get picture by:</b>
 /pic <i>id</i> OR /pic_<i>id</i>
@@ -50,10 +55,9 @@ OR
 OR
 📄 - By one with buttons of navigation
 
-Contact @dalor_dandy if error occurs
+More info -> https://t.me/dbots_dalor
 \nHave a nice day :-)
 '''
-DATABASE = os.environ['DATABASE_URL']
 
 GIF_HELP = [
     {'name': 'Base usage', 'file_id': 'CgADAgAD3wMAAsM_OUr6G1uUmZssjgI'}, 
@@ -67,7 +71,15 @@ app = Flask(__name__)
 b = Bot(BOT_ID)
 pix = User(PIX_LOGIN, PIX_PASSWORD, PIX_SESSION)
 
-dpix = DPixiv(b, pix, DATABASE, BOTNAME, PACK_OF_SIMILAR_POSTS, MAX_COUNT_POSTS, LOGIN_URL)
+dpix = DPixiv(
+    b, 
+    pix, 
+    DATABASE, 
+    BOTNAME,
+    PACK_OF_SIMILAR_POSTS,
+    MAX_COUNT_POSTS, 
+    LOGIN_URL
+    )
 
 @b.inline_query('([0-9]+)_?([0-9]*)')
 @b.inline_query('https\:\/\/www\.pixiv\.net\/member\_illust\.php\?.*illust\_id\=([0-9]+)()')
@@ -121,13 +133,13 @@ def inst_view(a):
             a.msg('<a href=\"https://t.me/iv?rhash=d78b7da75fefb6&url={}pic/{}\">View</a>'.format(LOGIN_URL, pixiv_id[1]), parse_mode='HTML').send()
 
 def reply_markup_for_gifhelp(id_=None):
-    return [[repl.inlinekeyboardbutton(GIF_HELP[i]['name'], callback_data='help {}'.format(i))] for i in range(len(GIF_HELP)) if i != id_]
+    return [[button(GIF_HELP[i]['name'], callback_data='help {}'.format(i))] for i in range(len(GIF_HELP)) if i != id_]
 
 @b.message('/helpingif')
 def help_in_gif(a):
     id_ = 0
     a.animation(GIF_HELP[id_]['file_id'], caption=GIF_HELP[id_]['name'],
-        reply_markup=repl.inlinekeyboardmarkup(reply_markup_for_gifhelp(id_))).send()
+        reply_markup=markup(reply_markup_for_gifhelp(id_))).send()
 
 @b.message('/help')
 def help(a):
@@ -136,7 +148,7 @@ def help(a):
 @b.message('/login')
 def login_url(a):
     a.msg('Use this url to log in your pixiv account', 
-        reply_markup=repl.inlinekeyboardmarkup([[repl.inlinekeyboardbutton('Log in', url=LOGIN_URL)]])).send()
+        reply_markup=markup([[button('Log in', url=LOGIN_URL)]])).send()
 
 @b.message('/settings')
 def default_settings(a):
@@ -194,17 +206,17 @@ def spec_help(a):
     id_ = int(a.args[1])
     help_ = GIF_HELP[id_]
     b.editmedia(
-            json.dumps(inmed.animation(help_['file_id'], caption=help_['name'])),
+            imanimation(help_['file_id'], caption=help_['name']),
             chat_id=a.data['message']['chat']['id'],
             message_id=a.data['message']['message_id'],
-            reply_markup=repl.inlinekeyboardmarkup(reply_markup_for_gifhelp(id_))
+            reply_markup=markup(reply_markup_for_gifhelp(id_))
         ).send()
 
-@b.message(True)
+@b.message(True, path=['photo'])
 def check_tag_in_mess(a):
     dpix.send_by_pic(a)
 
-@b.channel_post(True)
+@b.channel_post(True, path=['photo'])
 def check_tag_in_post(a):
     dpix.send_to_channel(a, by_tag=True)
 
@@ -289,7 +301,7 @@ def load_similar(id):
     else:
         return 'null'
 
-check_pixiv_url = re.compile('.+(pixiv|pximg)\.net.+\/([0-9]+|([0-9]+)(_[a-z]+|)_p([0-9]+))\.')
+check_pixiv_url = re.compile('.+(pixiv|pximg)\.net.+\/([0-9]+|([0-9]+)(_[a-z]+|)_p([0-9]+))')
 
 @app.route('/danbooru')
 def danbooru():

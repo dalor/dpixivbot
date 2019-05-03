@@ -35,10 +35,10 @@ class Database:
         cur = self.conn.cursor()
         if not self.is_user_exist(cur, chat_id):
             cur.execute('INSERT INTO users (chat_id, login, password, session, tt) VALUES (%s, %s, %s, %s, %s)',
-                (chat_id, pix_acc.login, pix_acc.password, pix_acc.get_session(), pix_acc.tt))
+                (chat_id, pix_acc.login, pix_acc.password, pix_acc.session, pix_acc.tt))
         else:
             cur.execute('UPDATE users SET login = %s, password = %s, session = %s, tt = %s WHERE chat_id = %s',
-                (pix_acc.login, pix_acc.password, pix_acc.get_session(), pix_acc.tt, chat_id))
+                (pix_acc.login, pix_acc.password, pix_acc.session, pix_acc.tt, chat_id))
         self.conn.commit()
         cur.close()
     
@@ -56,7 +56,7 @@ class Database:
         if result:
             pix_acc = User(*result)
             if pix_acc.tt:
-                if pix_acc.get_session() != result[2] or pix_acc.tt != result[3]:
+                if pix_acc.session != result[2] or pix_acc.tt != result[3]:
                     self.set_user(chat_id, pix_acc)
                 return pix_acc
     
