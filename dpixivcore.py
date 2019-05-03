@@ -8,7 +8,7 @@ import json
 from uuid import uuid4 as random_token
 
 change_url_page_pattern = re.compile('\_p[0-9]+')
-check_pixiv_id = re.compile('.*https\:\/\/i\.pximg\.net.+\/([0-9]+)_p([0-9]+)\.')
+check_pixiv_id = re.compile('.*https\:\/\/i\.pximg\.net.+\/([0-9]+)_p([0-9]+)')
 get_clear_pic_url = re.compile('.*(https\:\/\/i\.pximg\.net.+)')
 parse_saucenao = re.compile('pixiv\.net\/member\_illust\.php\?mode\=medium\&illust\_id\=([0-9]+)')
 
@@ -70,13 +70,15 @@ class DPixiv:
             ]]
     
     def prepare_picture(self, pic, ppic=0):
-        url = pic['urls']['original']
+        url = pic['urls']['regular']
         thumbnail = pic['urls']['thumb']
+        original = pic['urls']['original']
         if ppic and ppic < pic['pageCount']:
             url = self.change_url_page(url, ppic)
             thumbnail = self.change_url_page(thumbnail, ppic)
-        description = '<a href=\"{}fix?url={}\">{}</a>\n<b>Tags:</b> {}'.format(self.SITE_URL, url, pic['title'], self.pixiv_tags(pic))
-        return {'url': url, 'caption': description, 'thumbnail': thumbnail}
+            original = self.change_url_page(original, ppic)
+        description = '<a href=\"{}fix?url={}\">{}</a>\n<b>Tags:</b> {}'.format(self.SITE_URL, original, pic['title'], self.pixiv_tags(pic))
+        return {'url': url, 'caption': description, 'thumbnail': thumbnail, 'original': original}
         
     def change_url_page(self, old_url, new_page):
         return change_url_page_pattern.sub('_p{}'.format(new_page), old_url)
@@ -280,8 +282,8 @@ class DPixiv:
             return 'Nothing'
         temp_pic_url = self.change_url_page(entities[0]['url'], npic)
         entities[0]['url'] = temp_pic_url
-        pic_url = get_clear_pic_url.match(temp_pic_url)[1]
         caption = self.return_format_to_text(text, entities)
+        pic_url = temp_pic_url.replace('_p{}'.format(npic), '_p{}_master1200'.format(npic))
         args.ppic = npic
         reply_markup = repl.inlinekeyboardmarkup(self.reply(args))
         if is_photo:
