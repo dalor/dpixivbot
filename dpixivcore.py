@@ -283,7 +283,7 @@ class DPixiv:
         temp_pic_url = self.change_url_page(entities[0]['url'], npic)
         entities[0]['url'] = temp_pic_url
         caption = self.return_format_to_text(text, entities)
-        pic_url = temp_pic_url.replace('_p{}'.format(npic), '_p{}_master1200'.format(npic)).replace('img-original', 'img-master')
+        pic_url = get_clear_pic_url.match(temp_pic_url)[1].replace('_p{}'.format(npic), '_p{}_master1200'.format(npic)).replace('img-original', 'img-master')
         args.ppic = npic
         reply_markup = repl.inlinekeyboardmarkup(self.reply(args))
         if is_photo:
