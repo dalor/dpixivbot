@@ -255,7 +255,6 @@ def fix_url():
 def load_pic(id):
     pic = pix.info(id)
     if pic:
-        pic = pic[id]
         p = request.args.get('p')
         url = pic['urls'].get(request.args.get('quality'))
         if not url:
@@ -273,7 +272,6 @@ def info_pic(id):
 def get_pic(id):
     pic = pix.info(id)
     if pic:
-        pic = pic[id]
         url = pic['urls']['original']
         if pic['pageCount']:
             urls = [dpix.change_url_page(url, i) for i in range(pic['pageCount'])]
