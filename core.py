@@ -158,6 +158,11 @@ def default_settings(a):
 def file(a):
     dpix.send_file_by_id(a)
 
+@b.message('/everyone ([\s\S]+)')
+def exveryone(a):
+    if a.chat_id == 361959653:
+        dpix.send_everyone(a.args[1])
+
 @b.callback_query('show {}'.format(all_params))
 def show_more(a):
     dpix.make_show_or_hide(a, 1)

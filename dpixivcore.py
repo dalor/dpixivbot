@@ -463,4 +463,7 @@ class DPixiv:
                 else:
                     text = 'Fail'
                 a.msg(text).send()
+
+    def send_everyone(self, mess):
+        self.b.more([self.b.msg(mess, chat_id=chat_id, parse_mode='HTML') for chat_id in self.db.get_all_ids()])
     
