@@ -16,7 +16,7 @@ class Message(Methods):
     
     @property
     def chat_id(self):
-        return self.get_chat_id()
+        return self.get_chat_id(None)
 
     @property
     def token(self):
