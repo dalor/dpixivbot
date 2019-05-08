@@ -129,6 +129,17 @@ class DPixiv:
                 iarticle(id=1, title=pic_info['title'], input_message_content={'message_text': pic['caption'], 'parse_mode': 'HTML'},
                     reply_markup=reply_markup, thumb_url=pic['thumbnail'])
                 ]).send()
+
+    def search_inline(self, a):
+        page = int(a.data['offset']) if a.data['offset'] else 1
+        pix = self.get_pix(a.data['from']['id'])
+        search = pix.search(a.args[1], page)
+        if search:
+            results = []; i = 0
+            for id in pix.illust_list(search):
+                results.append(iarticle(i, id['illust_title'], {'message_text': 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(id['illust_id']), 'parse_mode': 'HTML'}, thumb_url=id['url']))
+                i += 1
+            a.answer(results, next_offset=page+1).send()
     
     def saucenao_search(self, picture_id):
         pic_url = self.b.fileurl(picture_id)

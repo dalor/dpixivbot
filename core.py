@@ -86,6 +86,10 @@ dpix = DPixiv(
 def picture_id__(a):
     dpix.answer_inline_picture(a)
 
+@b.inline_query('(.+)')
+def search(a):
+    dpix.search_inline(a)
+
 @b.channel_post('/?pic[ _]?([0-9]+)_?([0-9]*)')
 def channel_pic(a):
     dpix.send_to_channel(a)
