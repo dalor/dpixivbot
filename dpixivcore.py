@@ -48,7 +48,7 @@ class DPixiv:
                     button('▶️', callback_data='next {}'.format(params))
                     ])
             reply_result.append([
-                button('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(args.pic_id)),
+                button('Source', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(args.pic_id)),
                 button('Download file', callback_data='file'),
                 button('Share', switch_inline_query=args.pic_id if not args.ppic else '{}_{}'.format(args.pic_id, args.ppic)),
                 button('🔽', callback_data='show {}'.format(params)) 
@@ -67,7 +67,7 @@ class DPixiv:
     def shared_reply(self, pic_id, ppic=0):
         new_pic_id = pic_id if not ppic else '{}_{}'.format(pic_id, ppic)
         return [[
-            button('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(pic_id)),
+            button('Source', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(pic_id)),
             button('More', url='t.me/{}?start={}'.format(self.BOTNAME, new_pic_id)),
             button('Share', switch_inline_query=new_pic_id)
             ]]
@@ -75,7 +75,7 @@ class DPixiv:
     def channel_reply(self, pic_id, ppic=0):
         new_pic_id = pic_id if not ppic else '{}_{}'.format(pic_id, ppic)
         return [[
-            button('On pixiv', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(pic_id)),
+            button('Source', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(pic_id)),
             button('More', url='t.me/{}?start={}'.format(self.BOTNAME, new_pic_id))
             ]]
     
