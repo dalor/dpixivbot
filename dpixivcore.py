@@ -87,12 +87,15 @@ class DPixiv:
             url = self.change_url_page(url, ppic)
             thumbnail = self.change_url_page(thumbnail, ppic)
             original = self.change_url_page(original, ppic)
-        description = '<a href=\"{}fix?url={}\">{}</a>\n<b>Tags:</b> {}'.format(self.SITE_URL, original, pic['title'], self.pixiv_tags(pic))
+        description = '<a href=\"{}fix?url={}\">{}</a>\n<b>Tags:</b> {}'.format(self.SITE_URL, original, self.fix_chars(pic['title']), self.pixiv_tags(pic))
         return {'url': url, 'caption': description, 'thumbnail': thumbnail, 'original': original}
         
     def change_url_page(self, old_url, new_page):
         return change_url_page_pattern.sub('_p{}'.format(new_page), old_url)
     
+    def fix_chars(self, chars):
+        return chars.replace('<', '&#60;').replace('>', '&#62;')
+
     def pixiv_tags(self, pic):
         return ', '.join(['<code>{}</code>{}'.format(t['tag'], '({})'.format(t['translation']['en']) if 'translation' in t else '') for t in pic['tags']['tags']])
     
@@ -267,7 +270,7 @@ class DPixiv:
         for format in caption_entities:
             new_caption += caption[end_other:format['offset']]
             end_other = format['offset'] + format['length']
-            text = caption[format['offset']:end_other]
+            text = self.fix_chars(caption[format['offset']:end_other])
             if format['type'] == 'text_link':
                 new_caption += '<a href=\"{}\">{}</a>'.format(format['url'], text)
             elif format['type'] == 'bold':
