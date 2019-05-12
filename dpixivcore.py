@@ -186,7 +186,7 @@ class DPixiv:
                 if not (find and self.send_picture(find, a.data['chat']['id'], pix=pix)):
                     a.msg('¯\_(ツ)_/¯', reply_to_message_id=a.data['message_id']).send()
                     return
-        a.delete()
+        a.delete().send()
 
     def send_to_channel(self, a, by_tag=False):
         pixiv_id = self.find_pixiv_id_in_mess(a.data) if by_tag else a.args
