@@ -221,6 +221,7 @@ def spec_help(a):
             reply_markup=markup(reply_markup_for_gifhelp(id_))
         ).send()
 
+@b.message(True)
 @b.message(True, path=['photo'])
 def check_tag_in_mess(a):
     dpix.send_by_pic(a)

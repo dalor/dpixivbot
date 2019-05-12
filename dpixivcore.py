@@ -185,6 +185,8 @@ class DPixiv:
                 find = self.saucenao_search(a.data['photo'][-1]['file_id'])
                 if not (find and self.send_picture(find, a.data['chat']['id'], pix=pix)):
                     a.msg('¯\_(ツ)_/¯', reply_to_message_id=a.data['message_id']).send()
+                    return
+        a.delete()
 
     def send_to_channel(self, a, by_tag=False):
         pixiv_id = self.find_pixiv_id_in_mess(a.data) if by_tag else a.args
@@ -321,7 +323,6 @@ class DPixiv:
         return '{}/{}'.format(npic + 1, mppic)
     
     def turn_right_or_left(self, a, s):
-        first_s = s
         mess = self.change_pic(a, s)
         while not mess and abs(s) < self.PACK_OF_SIMILAR_POSTS:
             s = s - 1 if s < 0 else s + 1
