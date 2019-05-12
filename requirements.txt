@@ -2,4 +2,4 @@ Flask
 aiohttp
 psycopg2-binary
 requests
-dpixiv
+dpixiv==3.0.1
