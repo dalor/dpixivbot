@@ -156,7 +156,7 @@ class DPixiv:
             return self.send_picture(a.args[1], a.data['chat']['id'], ppic=int(a.args[2]) if a.args[2] else 0)
     
     def pic_command(self, a):
-        if not self.send_by_id(a) and 'reply_to_message' in a.data and 'photo' in a.data['reply_to_message'] and not self.send_by_tag(a.data['reply_to_message']):
+        if not self.send_by_id(a) and 'reply_to_message' in a.data and not self.send_by_tag(a.data['reply_to_message']) and 'photo' in a.data['reply_to_message']:
             find = self.saucenao_search(a.data['reply_to_message']['photo'][-1]['file_id'])
             if not (find and self.send_picture(find, a.data['chat']['id'])):
                 a.msg('¯\_(ツ)_/¯', reply_to_message_id=a.data['reply_to_message']['message_id']).send()

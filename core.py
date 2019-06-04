@@ -105,6 +105,7 @@ def pic__(a):
 @b.message('/start token_([0-9a-z\-]+)')
 def start_token(a):
     dpix.connect_user_to_id(a)
+    a.delete().send()
 
 @b.message('/following[ _]?([0-9]*)')
 def ufollowing(a):
