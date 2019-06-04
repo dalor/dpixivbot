@@ -40,6 +40,7 @@ Reply /tag <i>new_tag</i> OR /t <i>new_tag</i> to add <i>new_tag</i> for picture
 /following - Get new pictures from your following
 /following <i>page</i> OR /following_<i>page</i> - Get 20 pictures from <i>page</i> from your following feed
 /bookmarks <i>page</i> OR /bookmarks_<i>page</i> - Get 20 pictures from <i>page</i> from your bookmarks
+/logout
 \nFor inline enter:
 ID
 URL of picture from pixiv (in text also)
@@ -154,6 +155,10 @@ def help(a):
 def login_url(a):
     a.msg('Use this url to log in your pixiv account', 
         reply_markup=markup([[button('Log in', url=LOGIN_URL)]])).send()
+
+@b.message('/logout')
+def logout(a):
+    dpix.logout(a)
 
 @b.message('/settings')
 def default_settings(a):

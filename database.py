@@ -43,6 +43,7 @@ class Database:
         cur.close()
     
     def del_user(self, chat_id):
+        self.temp.pop(chat_id)
         cur = self.conn.cursor()
         cur.execute('DELETE FROM users WHERE chat_id = %s', (chat_id, ))
         self.conn.commit()

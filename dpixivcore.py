@@ -413,6 +413,11 @@ class DPixiv:
         return new
     
     @is_logged
+    def logout(self, a, pix):
+        self.db.del_user(a.data['chat']['id'])
+        a.msg('Disconnected').send()
+
+    @is_logged
     def user_following(self, a, pix):
         follow_ids = []
         last_id = int(pix.last_id)
