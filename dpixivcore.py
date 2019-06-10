@@ -87,7 +87,7 @@ class DPixiv:
             url = self.change_url_page(url, ppic)
             thumbnail = self.change_url_page(thumbnail, ppic)
             original = self.change_url_page(original, ppic)
-        description = '<a href=\"{}fix?url={}\">{}</a>{}\n<b>Tags:</b> {}'.format(self.SITE_URL, original, ' ({}/{})'.format(ppic + 1, pic['pageCount']) if pic['pageCount'] > 1 else '', self.fix_chars(pic['title']), self.pixiv_tags(pic))
+        description = '<a href=\"{}fix?url={}\">{}</a>{}\n<b>Tags:</b> {}'.format(self.SITE_URL, original, self.fix_chars(pic['title']), ' ({}/{})'.format(ppic + 1, pic['pageCount']) if pic['pageCount'] > 1 else '', self.pixiv_tags(pic))
         return {'url': url, 'caption': description, 'thumbnail': thumbnail, 'original': original}
         
     def change_url_page(self, old_url, new_page):
