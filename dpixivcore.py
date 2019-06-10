@@ -87,7 +87,7 @@ class DPixiv:
             url = self.change_url_page(url, ppic)
             thumbnail = self.change_url_page(thumbnail, ppic)
             original = self.change_url_page(original, ppic)
-        description = '<a href=\"{}fix?url={}\">{}</a>\n<b>Tags:</b> {}'.format(self.SITE_URL, original, self.fix_chars(pic['title']), self.pixiv_tags(pic))
+        description = '<a href=\"{}fix?url={}\">{}</a>{}\n<b>Tags:</b> {}'.format(self.SITE_URL, original, ' ({}/{})'.format(ppic + 1, pic['pageCount']) if pic['pageCount'] > 1 else '', self.fix_chars(pic['title']), self.pixiv_tags(pic))
         return {'url': url, 'caption': description, 'thumbnail': thumbnail, 'original': original}
         
     def change_url_page(self, old_url, new_page):
@@ -309,6 +309,7 @@ class DPixiv:
         temp_pic_url = self.change_url_page(entities[0]['url'], npic)
         entities[0]['url'] = temp_pic_url
         caption = self.return_format_to_text(text, entities)
+        caption = caption.replace('({}/{})\n'.format(args.ppic + 1, mppic), '({}/{})\n'.format(npic + 1, mppic))
         pic_url = get_clear_pic_url.match(temp_pic_url)[1].replace('_p{}'.format(npic), '_p{}_master1200'.format(npic)).replace('img-original', 'img-master').replace('.png', '.jpg')
         args.ppic = npic
         reply_markup = markup(self.reply(args))
