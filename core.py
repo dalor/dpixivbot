@@ -242,7 +242,9 @@ def index_login():
 
 @app.route('/login', methods=['POST'])
 def logn_form():
-    token = dpix.reg_temp_token(request.form.get('login'), request.form.get('password'), request.form.get('captcha_token'), request.form.get('post_key'))
+    token = dpix.reg_temp_token(request.form.get('login'), request.form.get('password'), request.form.get('captcha_token'))
+    print(request.form)
+    print(token)
     if token:
         return jsonify({'ok': True, 'result': token})
     else:
