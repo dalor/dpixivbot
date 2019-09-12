@@ -247,7 +247,8 @@ def logn_form():
         response = jsonify({'ok': True, 'result': token})
     else:
         response = jsonify({'ok': False})
-    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Origin'] = os.environ['ORIGIN']
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
     return response
 
 @app.route('/{}'.format(BOT_ID), methods=['POST']) #Telegram should be connected to this hook
