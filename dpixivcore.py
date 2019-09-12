@@ -379,14 +379,15 @@ class DPixiv:
             self.send_pictures(sim_ids, a.data['message']['chat']['id'], args=args,
                 reply_to_message_id=a.data['message']['message_id'], pix=pix)
     
-    def reg_temp_token(self, login, password):
-        new_acc = User(login, password)
-        if new_acc.tt:
+    def reg_temp_token(self, login, password, captcha_token, post_key=None):
+        new_acc = User()
+        new_acc.auth(login, password, captcha_token, post_key)
+        if new_acc.is_auth:
             token = str(random_token())
             while token in self.tokens:
                 token = str(random_token())
             self.tokens[token] = new_acc
-            return token
+            return {'token': token, 'session': new_acc.session}
     
     def connect_user_to_id(self, a):
         token = a.args[1]

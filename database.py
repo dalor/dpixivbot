@@ -14,10 +14,7 @@ class Database:
         cur.execute('''
         CREATE TABLE IF NOT EXISTS users 
         (chat_id INTEGER NOT NULL PRIMARY KEY,
-        login TEXT NOT NULL,
-        password TEXT NOT NULL,
         session TEXT,
-        tt TEXT,
         last_id INTEGER,
         count INTEGER,
         only_pics INTEGER,
@@ -34,11 +31,11 @@ class Database:
         self.set_user_to_temp(chat_id, pix_acc)
         cur = self.conn.cursor()
         if not self.is_user_exist(cur, chat_id):
-            cur.execute('INSERT INTO users (chat_id, login, password, session, tt) VALUES (%s, %s, %s, %s, %s)',
-                (chat_id, pix_acc.login, pix_acc.password, pix_acc.session, pix_acc.tt))
+            cur.execute('INSERT INTO users (chat_id, session) VALUES (%s, %s)',
+                (chat_id, pix_acc.session))
         else:
-            cur.execute('UPDATE users SET login = %s, password = %s, session = %s, tt = %s WHERE chat_id = %s',
-                (pix_acc.login, pix_acc.password, pix_acc.session, pix_acc.tt, chat_id))
+            cur.execute('UPDATE users SET session = %s WHERE chat_id = %s',
+                (pix_acc.session, chat_id))
         self.conn.commit()
         cur.close()
     
@@ -51,14 +48,12 @@ class Database:
     
     def get_user_from_db(self, chat_id):
         cur = self.conn.cursor()
-        cur.execute('SELECT login, password, session, tt, last_id, count, only_pics, by_one FROM users WHERE chat_id = %s', (chat_id, ))
+        cur.execute('SELECT session, last_id, count, only_pics, by_one FROM users WHERE chat_id = %s', (chat_id, ))
         result = cur.fetchone()
         cur.close()
         if result:
             pix_acc = User(*result)
-            if pix_acc.tt:
-                if pix_acc.session != result[2] or pix_acc.tt != result[3]:
-                    self.set_user(chat_id, pix_acc)
+            if pix_acc.is_auth:
                 return pix_acc
     
     def save_user_settings(self, chat_id):

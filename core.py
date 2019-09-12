@@ -238,15 +238,15 @@ def check_tag_in_post(a):
 
 @app.route('/')
 def index_login():
-    return render_template('login.html')
+    return redirect('https://t.me/{}'.format(BOTNAME))
 
 @app.route('/login', methods=['POST'])
 def logn_form():
-    token = dpix.reg_temp_token(request.form.get('login'), request.form.get('password'))
+    token = dpix.reg_temp_token(request.form.get('login'), request.form.get('password'), request.form.get('captcha_token'), request.form.get('post_key'))
     if token:
-        return redirect('https://t.me/{}?start=token_{}'.format(BOTNAME, token))
+        return jsonify({'ok': True, 'result': token})
     else:
-        return redirect('/')
+        return jsonify({'ok': False})
 
 @app.route('/{}'.format(BOT_ID), methods=['POST']) #Telegram should be connected to this hook
 def webhook():
