@@ -243,12 +243,12 @@ def index_login():
 @app.route('/login', methods=['POST'])
 def logn_form():
     token = dpix.reg_temp_token(request.form.get('login'), request.form.get('password'), request.form.get('captcha_token'))
-    print(request.form)
-    print(token)
     if token:
-        return jsonify({'ok': True, 'result': token})
+        response = jsonify({'ok': True, 'result': token})
     else:
-        return jsonify({'ok': False})
+        response = jsonify({'ok': False})
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
 
 @app.route('/{}'.format(BOT_ID), methods=['POST']) #Telegram should be connected to this hook
 def webhook():
