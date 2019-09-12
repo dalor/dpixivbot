@@ -1,7 +1,7 @@
 from dpixiv import DPixivIllusts
 
 class User(DPixivIllusts):
-    def __init__(self, session, last_id=None, count=None, only_pics=None, by_one=None):
+    def __init__(self, session=None, last_id=None, count=None, only_pics=None, by_one=None):
         super().__init__(session=session)
         self.last_id = last_id if last_id else 0
         self.count = count if count else 5
