@@ -48,7 +48,7 @@ class Database:
     
     def get_user_from_db(self, chat_id):
         cur = self.conn.cursor()
-        cur.execute('SELECT session, last_id, count, only_pics, by_one FROM users WHERE chat_id = %s', (chat_id, ))
+        cur.execute('SELECT session, chat_id, last_id, count, only_pics, by_one FROM users WHERE chat_id = %s', (chat_id, ))
         result = cur.fetchone()
         cur.close()
         if result:
@@ -90,5 +90,13 @@ class Database:
             if not user:
                 return self.pix if anyway else None
         return user
+
+    def get_user_by_session(self, session):
+        cur = self.conn.cursor()
+        cur.execute('SELECT chat_id FROM users WHERE session = %s', (session, ))
+        result = cur.fetchone()
+        cur.close()
+        if result:
+            return self.get_user(result[0], anyway=False)
         
     

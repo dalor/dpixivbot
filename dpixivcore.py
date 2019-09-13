@@ -490,4 +490,16 @@ class DPixiv:
 
     def send_everyone(self, mess):
         self.b.more([self.b.msg(mess, chat_id=chat_id, parse_mode='HTML') for chat_id in self.db.get_all_ids()])
+
+    def from_plugin(old):
+        def new(self, session, *args):
+            if session:
+                pix = self.db.get_user_by_session(session)
+                if pix:
+                    return old(self, pix, *args)
+        return new
+
+    @from_plugin
+    def send_picture_from_plugin(self, pix, id):
+        return self.send_picture(id, pix.chat_id, pix=pix)
     

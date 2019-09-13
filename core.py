@@ -333,6 +333,13 @@ def danbooru():
             pictures.append({'url': url, 'file_url': file_url})
     return render_template('danbooru_pics.html', list=pictures, title='danbooru')
 
+@app.route('/plugin/send_picture')
+def send_pic_from_plugin():
+    response = jsonify({'ok': dpix.send_picture_from_plugin(request.args.get('session'), request.args.get('illust_id'))})
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    return response
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
 
