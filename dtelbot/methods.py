@@ -93,18 +93,16 @@ class Methods:
     kwargs = {'chat_id': self.get_chat_id(chat_id), 'message_id': self.get_message_id(message_id)}
     return self.method('deleteMessage', **kwargs)
         
-  def edittext(self, text, chat_id=None, message_id=None, auto=False, **kwargs):
+  def edittext(self, text, chat_id=None, message_id=None, **kwargs):
     kwargs['text'] = text
-    if auto:
-      kwargs['chat_id'] = self.get_chat_id(chat_id)
-      kwargs['message_id'] = self.get_message_id(message_id)
+    kwargs['chat_id'] = self.get_chat_id(chat_id)
+    kwargs['message_id'] = self.get_message_id(message_id)
     return self.method('editMessageText', **kwargs)
     
   def editcaption(self, caption=None, chat_id=None, message_id=None, auto=False, **kwargs):
     kwargs['caption'] = '' if not caption else caption
-    if auto:
-      kwargs['chat_id'] = self.get_chat_id(chat_id)
-      kwargs['message_id'] = self.get_message_id(message_id)
+    kwargs['chat_id'] = self.get_chat_id(chat_id)
+    kwargs['message_id'] = self.get_message_id(message_id)
     return self.method('editMessageCaption', **kwargs)
         
   def editmedia(self, media, **kwargs):

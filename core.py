@@ -12,8 +12,6 @@ from dpixivcore import DPixiv, check_pixiv_id
 import requests
 
 BOT_ID = os.environ['BOT_ID']
-PIX_LOGIN = os.environ['PIX_LOGIN']
-PIX_PASSWORD = os.environ['PIX_PASSWORD']
 PIX_SESSION = os.environ.get('PIX_SESSION')
 PACK_OF_SIMILAR_POSTS = int(os.environ['PACK_OF_SIMILAR_POSTS'])
 MAX_COUNT_POSTS = int(os.environ['MAX_COUNT_POSTS'])
