@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, jsonify, send_file
+from flask import Flask, request, render_template, redirect, jsonify, Response
 from dtelbot import Bot
 from dtelbot.inline import photo as iphoto, article as iarticle
 from dtelbot.inline_keyboard import markup, button
@@ -10,7 +10,6 @@ import os
 import json
 from dpixivcore import DPixiv, check_pixiv_id
 import requests
-from io import BytesIO
 
 BOT_ID = os.environ['BOT_ID']
 PIX_LOGIN = os.environ['PIX_LOGIN']
@@ -266,8 +265,8 @@ def fix_url():
     if url:
         res = check_pixiv_id.match(url)
         if res:
-            picture = requests.get(url, headers={'Referer': 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(res[1])})
-            return send_file(BytesIO(picture.content), mimetype=picture.headers['Content-Type'], attachment_filename='{}_p{}'.format(res[1], res[2]))
+            picture = requests.get(url, headers={'Referer': 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(res[1])}, stream=True)
+            return Response(picture.iter_content(chunk_size=16384), mimetype=picture.headers['Content-Type'])
     return 'null'
 
 @app.route('/load/<id>')
