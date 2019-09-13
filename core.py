@@ -70,7 +70,7 @@ assert PACK_OF_SIMILAR_POSTS <= 10
 
 app = Flask(__name__)
 b = Bot(BOT_ID)
-pix = User(PIX_LOGIN, PIX_PASSWORD, PIX_SESSION)
+pix = User(PIX_SESSION)
 
 dpix = DPixiv(
     b, 
@@ -247,7 +247,7 @@ def logn_form():
         response = jsonify({'ok': True, 'result': token})
     else:
         response = jsonify({'ok': False})
-    response.headers['Access-Control-Allow-Origin'] = os.environ['ORIGIN']
+    response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Credentials'] = 'true'
     return response
 
