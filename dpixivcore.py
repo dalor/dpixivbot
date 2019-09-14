@@ -293,6 +293,7 @@ class DPixiv:
     def choose_ranking(self, a):
         args = self.parse_args(a)
         args.pic_id = a.args[9]
+        args.page = 0
         self.edit_reply(a, args)
         
     def return_format_to_text(self, caption, caption_entities):
@@ -419,12 +420,12 @@ class DPixiv:
             pix = self.get_pix(a.data['message']['chat']['id'])
             mode = self.ranking[args.pic_id]
             if (first // 50 == last // 50) :
-                ids = pix.ranking(mode)
+                ids = pix.ranking(mode['id'])
             else:
-                ids = pix.ranking_packs(mode, from_page=first // 50 + 1, to_page=last // 50 + 1)
+                ids = pix.ranking_packs(mode['id'], from_page=first // 50 + 1, to_page=last // 50 + 1)
             first_in_pack = first if first < 50 else first % 50
-            pics = ids[first_in_pack:first_in_pack+count]
-            a.answer(text='Loading {} pictures from {} to {}'.format(count, first + 1, last)).send()
+            pics = ids[first_in_pack:first_in_pack + args.count]
+            a.answer(text='Loading {} {} pictures from {} to {}'.format(args.count, mode['name'].lower(), first + 1, last)).send()
             self.edit_reply(a, args)
             self.send_pictures(pics, a.data['message']['chat']['id'], args=args,
                 reply_to_message_id=a.data['message']['message_id'], pix=pix)
