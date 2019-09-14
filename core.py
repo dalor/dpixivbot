@@ -150,8 +150,15 @@ def help(a):
 
 @b.message('/login')
 def login_url(a):
-    a.msg('Use this url to log in your pixiv account', 
-        reply_markup=markup([[button('Log in', url=LOGIN_URL)]])).send()
+    a.msg('Use this browser extension to log in your pixiv account', 
+        reply_markup=markup([
+            [button('🦊Firefox (Also for Android)', url='https://addons.mozilla.org/en-US/firefox/addon/dpixiv/')],
+            [button('Chrome (Later)', url='https://google.com')]
+        ])).send()
+
+@b.message('/session')
+def send_session(a):
+    dpix.send_session(a)
 
 @b.message('/logout')
 def logout(a):

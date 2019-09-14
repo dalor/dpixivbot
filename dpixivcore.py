@@ -488,6 +488,10 @@ class DPixiv:
                     text = 'Fail'
                 a.msg(text).send()
 
+    @is_logged
+    def send_session(self, a, pix):
+        a.msg('Your session:\n<code>{}</code>\n<i>Use it to connect browser extension to this profile</i>'.format(pix.session), parse_mode='HTML').send()
+
     def send_everyone(self, mess):
         self.b.more([self.b.msg(mess, chat_id=chat_id, parse_mode='HTML') for chat_id in self.db.get_all_ids()])
 
