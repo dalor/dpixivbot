@@ -25,26 +25,26 @@ class DPixiv:
         self.SITE_URL = SITE_URL
         self.tokens = {}
         self.ranking  = {
-            '1': {'id': 'daily', 'name': 'Daily'},
-            '2': {'id': 'daily_r18', 'name': 'Daily 🔞'},
-            '3': {'id': 'weekly', 'name': 'Weekly'},
-            '4': {'id': 'weekly_r18', 'name': 'Weekly 🔞'},
-            '5': {'id': 'monthly', 'name': 'Monthly'},
-            '6': {'id': 'rookie', 'name': 'Rookie'},
-            '7': {'id': 'original', 'name': 'Original'},
-            '8': {'id': 'male', 'name': 'Male'},
-            '9': {'id': 'male_r18', 'name': 'Male 🔞'},
-            '10': {'id': 'female', 'name': 'Female'},
-            '11': {'id': 'female_r18', 'name': 'Female 🔞'}
+            1: {'id': 'daily', 'name': 'Daily'},
+            2: {'id': 'daily_r18', 'name': 'Daily 🔞'},
+            3: {'id': 'weekly', 'name': 'Weekly'},
+            4: {'id': 'weekly_r18', 'name': 'Weekly 🔞'},
+            5: {'id': 'monthly', 'name': 'Monthly'},
+            6: {'id': 'rookie', 'name': 'Rookie'},
+            7: {'id': 'original', 'name': 'Original'},
+            8: {'id': 'male', 'name': 'Male'},
+            9: {'id': 'male_r18', 'name': 'Male 🔞'},
+            10: {'id': 'female', 'name': 'Female'},
+            11: {'id': 'female_r18', 'name': 'Female 🔞'}
         }
         self.ranking_buttons = [
-            ['1', '2'],
-            ['3', '4'],
-            ['5'],
-            ['6'],
-            ['7'],
-            ['8', '9'],
-            ['10', '11']
+            [1, 2],
+            [3, 4],
+            [5],
+            [6],
+            [7],
+            [8, 9],
+            [10, 11]
         ]
     
     def parse_args(self, a):
@@ -63,22 +63,23 @@ class DPixiv:
     def reply(self, args):
         reply_result = []
         params = args.format()
-        if len(args.pic_id) > 5:
+        pic_id = int(args.pic_id)
+        if pic_id > 10000:
             if args.mppic > 1:
                 reply_result.append([
                     button('◀️', callback_data='prev {}'.format(params)),
                     button('▶️', callback_data='next {}'.format(params))
                     ])
             reply_result.append([
-                button('Source', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(args.pic_id)),
+                button('Source', url='https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(pic_id)),
                 button('Download file', callback_data='file'),
-                button('Share', switch_inline_query=args.pic_id if not args.ppic else '{}_{}'.format(args.pic_id, args.ppic)),
+                button('Share', switch_inline_query=pic_id if not args.ppic else '{}_{}'.format(pic_id, args.ppic)),
                 button('🔽', callback_data='show {}'.format(params)) 
                 if not args.show else button('🔼', callback_data='hide {}'.format(params))
                 ])
-        elif int(args.pic_id) <= 11 and int(args.pic_id) >= 1: #For ranking
-            reply_result.extend([[button(('✅ ' if args.pic_id == btn else '') + self.ranking[btn]['name'], callback_data='rank {} m{}'.format(params, btn)) for btn in btn_line] for btn_line in self.ranking_buttons])
-        if args.show or len(args.pic_id) <= 5:
+        elif pic_id <= 11 and pic_id >= 1: #For ranking
+            reply_result.extend([[button(('✅ ' if pic_id == btn else '') + self.ranking[btn]['name'], callback_data='rank {} m{}'.format(params, btn)) for btn in btn_line] for btn_line in self.ranking_buttons])
+        if args.show or pic_id < 10001:
             reply_result.append([
                 button('➖', callback_data='count_minus {}'.format(params)),
                   button('{} ⬇️'.format(args.count), callback_data='similar {}'.format(params)),
@@ -418,7 +419,7 @@ class DPixiv:
         else:
             args.page = last // self.PACK_OF_SIMILAR_POSTS
             pix = self.get_pix(a.data['message']['chat']['id'])
-            mode = self.ranking[args.pic_id]
+            mode = self.ranking[int(args.pic_id)]
             if (first // 50 == last // 50) :
                 ids = pix.ranking(mode['id'])
             else:

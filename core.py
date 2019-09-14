@@ -27,6 +27,7 @@ Forward pictures with description from this bot
 Send the url of picture from pixiv
 Share from PixivApp to bot
 \n<b>Other:</b>
+/ranking - Different ranking pictures
 /file <i>id</i> OR /file_<i>id</i> - Sending picture as document by ID
 /helpingif - Cool type of help
 Reply /instant to get Instant View
@@ -37,6 +38,7 @@ Reply /tag <i>new_tag</i> OR /t <i>new_tag</i> to add <i>new_tag</i> for picture
 /following - Get new pictures from your following
 /following <i>page</i> OR /following_<i>page</i> - Get 20 pictures from <i>page</i> from your following feed
 /bookmarks <i>page</i> OR /bookmarks_<i>page</i> - Get 20 pictures from <i>page</i> from your bookmarks
+/session - Get session to use in browser plugin or dpixiv lib
 /logout
 \nFor inline enter:
 ID
