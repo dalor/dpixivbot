@@ -81,7 +81,7 @@ class DPixiv:
         if args.show or len(args.pic_id) <= 5:
             reply_result.append([
                 button('➖', callback_data='count_minus {}'.format(params)),
-                  button('{} ⬇️'.format(args.count), callback_data='send {}'.format(params)),
+                  button('{} ⬇️'.format(args.count), callback_data='similar {}'.format(params)),
                   button('➕', callback_data='count_plus {}'.format(params)),
                   button('🖼' if args.only_pics else '📰', callback_data='opics {}'.format(params)),
                   button('📄' if args.by_one else '📂', callback_data='group {}'.format(params))

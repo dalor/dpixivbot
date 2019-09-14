@@ -213,7 +213,7 @@ def next_pic(a):
 def prev_pic(a):
     dpix.turn_right_or_left(a, -1)
 
-@b.callback_query('(send|similar) {}'.format(all_params))
+@b.callback_query('similar {}'.format(all_params))
 def call_sim(a):
     id_ = int(a.args[1])
     if id_ == 0:
