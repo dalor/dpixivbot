@@ -24,6 +24,28 @@ class DPixiv:
         self.MAX_COUNT_POSTS = MAX_COUNT_POSTS
         self.SITE_URL = SITE_URL
         self.tokens = {}
+        self.ranking  = {
+            '1': {'id': 'daily', 'name': 'Daily'},
+            '2': {'id': 'daily_r18', 'name': 'Daily 🔞'},
+            '3': {'id': 'weekly', 'name': 'Weekly'},
+            '4': {'id': 'weekly_r18', 'name': 'Weekly 🔞'},
+            '5': {'id': 'monthly', 'name': 'Monthly'},
+            '6': {'id': 'rookie', 'name': 'Rookie'},
+            '7': {'id': 'original', 'name': 'Original'},
+            '8': {'id': 'male', 'name': 'Male'},
+            '9': {'id': 'male_r18', 'name': 'Male 🔞'},
+            '10': {'id': 'female', 'name': 'Female'},
+            '11': {'id': 'female_r18', 'name': 'Female 🔞'}
+        }
+        self.ranking_buttons = [
+            ['1', '2'],
+            ['3', '4'],
+            ['5'],
+            ['6'],
+            ['7'],
+            ['8', '9'],
+            ['10', '11']
+        ]
     
     def parse_args(self, a):
         args = a.args
@@ -41,7 +63,7 @@ class DPixiv:
     def reply(self, args):
         reply_result = []
         params = args.format()
-        if args.pic_id != '0':
+        if len(args.pic_id) > 5:
             if args.mppic > 1:
                 reply_result.append([
                     button('◀️', callback_data='prev {}'.format(params)),
@@ -54,10 +76,12 @@ class DPixiv:
                 button('🔽', callback_data='show {}'.format(params)) 
                 if not args.show else button('🔼', callback_data='hide {}'.format(params))
                 ])
-        if args.show or args.pic_id == '0':
+        elif args.pic_id >= '1' and args.pic_id <= '11': #For ranking
+            reply_result.extend([[button(('✅ ' if args.pic_id == btn else '') + self.ranking[btn]['name'], callback_data='rank {} {}'.format(params, btn)) for btn in btn_line] for btn_line in self.ranking_buttons])
+        if args.show or len(args.pic_id) <= 5:
             reply_result.append([
                 button('➖', callback_data='count_minus {}'.format(params)),
-                  button('{} ⬇️'.format(args.count), callback_data='similar {}'.format(params)),
+                  button('{} ⬇️'.format(args.count), callback_data='send {}'.format(params)),
                   button('➕', callback_data='count_plus {}'.format(params)),
                   button('🖼' if args.only_pics else '📰', callback_data='opics {}'.format(params)),
                   button('📄' if args.by_one else '📂', callback_data='group {}'.format(params))
@@ -265,7 +289,12 @@ class DPixiv:
             args.by_one = 1
             a.answer(text='Will send by one').send()
         self.edit_reply(a, args)
-    
+
+    def choose_ranking(self, a):
+        args = self.parse_args(a)
+        args.pic_id = a.args[9]
+        self.edit_reply(a, args)
+        
     def return_format_to_text(self, caption, caption_entities):
         new_caption = ''
         end_other = 0
@@ -378,6 +407,34 @@ class DPixiv:
             self.edit_reply(a, args)
             self.send_pictures(sim_ids, a.data['message']['chat']['id'], args=args,
                 reply_to_message_id=a.data['message']['message_id'], pix=pix)
+
+    def send_ranking(self, a):
+        args = self.parse_args(a)
+        first = args.page * self.PACK_OF_SIMILAR_POSTS
+        last = first + args.count
+        if last > self.MAX_COUNT_POSTS:
+            a.answer(text='This is limit').send()
+        else:
+            args.page = last // self.PACK_OF_SIMILAR_POSTS
+            pix = self.get_pix(a.data['message']['chat']['id'])
+            mode = self.ranking[args.pic_id]
+            if (first // 50 == last // 50) :
+                ids = pix.ranking(mode)
+            else:
+                ids = pix.ranking_packs(mode, from_page=first // 50 + 1, to_page=last // 50 + 1)
+            first_in_pack = first if first < 50 else first % 50
+            pics = ids[first_in_pack:first_in_pack+count]
+            a.answer(text='Loading {} pictures from {} to {}'.format(count, first + 1, last)).send()
+            self.edit_reply(a, args)
+            self.send_pictures(pics, a.data['message']['chat']['id'], args=args,
+                reply_to_message_id=a.data['message']['message_id'], pix=pix)
+
+    def send_ranking_list(self, a):
+        pix = self.get_pix(a.data['chat']['id'])
+        reply_args = Parameters(pic_id='1',
+                count=pix.count, only_pics=pix.only_pics, by_one=pix.by_one)
+        a.msg('<b>Rankings:</b>', parse_mode='HTML',
+            reply_markup=markup(self.reply(reply_args))).send()
     
     def reg_temp_token(self, login, password, captcha_token):
         new_acc = User()

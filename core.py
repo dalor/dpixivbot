@@ -156,6 +156,10 @@ def login_url(a):
             [button('Chrome (Later)', url='https://google.com')]
         ])).send()
 
+@b.message('/ranking')
+def ranking(a):
+    dpix.send_ranking_list(a)
+
 @b.message('/session')
 def send_session(a):
     dpix.send_session(a)
@@ -209,12 +213,19 @@ def next_pic(a):
 def prev_pic(a):
     dpix.turn_right_or_left(a, -1)
 
-@b.callback_query('similar {}'.format(all_params))
+@b.callback_query('(send|similar) {}'.format(all_params))
 def call_sim(a):
-    if a.args[1] == '0':
+    id = a.args[1]
+    if id == '0':
         dpix.save_default_settings(a)
+    elif id >= '1' and id <= '11':
+        dpix.send_ranking(a)
     else:
         dpix.send_similar(a)
+
+@b.callback_query('rank {} ([0-9]{1,2})'.format(all_params))
+def ranking(a):
+    dpix.choose_ranking(a)
 
 @b.callback_query('file')
 def ffile(a):
