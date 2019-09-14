@@ -223,7 +223,7 @@ def call_sim(a):
     else:
         dpix.send_similar(a)
 
-@b.callback_query('rank {} ([0-9]{1,2})'.format(all_params))
+@b.callback_query('rank {} m([0-9]+)'.format(all_params))
 def ranking(a):
     dpix.choose_ranking(a)
 
