@@ -218,7 +218,7 @@ def call_sim(a):
     id_ = int(a.args[1])
     if id_ == 0:
         dpix.save_default_settings(a)
-    elif id_ >= 1 and id <= 11:
+    elif id_ >= 1 and id_ <= 11:
         dpix.send_ranking(a)
     else:
         dpix.send_similar(a)

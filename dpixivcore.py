@@ -76,7 +76,7 @@ class DPixiv:
                 button('🔽', callback_data='show {}'.format(params)) 
                 if not args.show else button('🔼', callback_data='hide {}'.format(params))
                 ])
-        elif args.pic_id >= '1' and args.pic_id <= '11': #For ranking
+        elif int(args.pic_id) <= 11 and int(args.pic_id) >= 1: #For ranking
             reply_result.extend([[button(('✅ ' if args.pic_id == btn else '') + self.ranking[btn]['name'], callback_data='rank {} m{}'.format(params, btn)) for btn in btn_line] for btn_line in self.ranking_buttons])
         if args.show or len(args.pic_id) <= 5:
             reply_result.append([
