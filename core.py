@@ -281,11 +281,10 @@ def render_pics(ids, title):
 def fix_url():
     url = request.args.get('url')
     if url:
-        res = check_pixiv_id.match(url)
-        if res:
-            picture = requests.get(url, headers={'Referer': 'https://www.pixiv.net/member_illust.php?mode=medium&illust_id={}'.format(res[1])}, stream=True)
-            return Response(picture.iter_content(chunk_size=16384), mimetype=picture.headers['Content-Type'])
-    return 'null'
+        picture = requests.get(url, headers={'Referer': 'https://www.pixiv.net'}, stream=True)
+        return Response(picture.iter_content(chunk_size=16384), mimetype=picture.headers['Content-Type'])
+    else:
+        return 'null'
 
 @app.route('/load/<id>')
 def load_pic(id):
